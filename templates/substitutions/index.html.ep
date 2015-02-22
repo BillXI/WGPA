@@ -1,0 +1,203 @@
+% title 'DC Genes - Substitutions Analysis';
+% content_for scripts => begin
+	<script type="text/javascript" src="/js/vendors/TSorter_1.js"></script>
+	<script type="text/javascript" src="/js/vendors/springy.js" ></script>
+	<script type="text/javascript" src="/js/vendors/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
+	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
+	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
+	<script type="text/javascript" src="/js/app/views/substitutions.js" ></script>	
+	<script type="text/javascript" src="/js/app/views/scoreForm.js" ></script>
+% end
+
+<div class="container">
+	<div id="form" class="row collapse in">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2>Upload your own De-novo mutation containing substitutions</h2>
+			</div>
+		</div>
+		<div class="col-lg-6">	
+			<legend>Investigate a set of substitutions</legend>
+			<p>Enter a set of substitutions and press submit to investigate their evolutionary intolerance.</p>
+			
+			<form class="form-horizontal" role="form">
+				<div class="form-group">
+					<div class="col-sm-12">
+						<textarea id="text-box" name="text-box" class="form-control table" rows="10"></textarea>
+						<p class="help-block">or try an example: <a href="javascript:;" id="epi4k-subs">Epi4K</a></p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="genes-file">or upload your own file:</label>
+					<div class="col-sm-7">
+						<input type="file" id="file" name="file" class="form-control">
+						<p class="help-block">text file where each line is a substitution</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="algorithm">Prediction algorithm:</label>
+					<div class="col-sm-7">
+						<select name="algorithm" id="Algorithm" class="form-control">
+							<option value="INHERITED">Weighted</option>
+							<option value="UNWEIGHTED">Unweighted</option>
+							<option value="CANCER">Cancer</option>
+						</select>
+						<p class="help-block">eg: Inherited</p>
+					</div>
+				</div>
+
+				<div id="InheritedOptions" class="form-group">
+					<label class="control-label col-sm-5" for="phenotype">Phenotype ontology:</label>
+					<div class="col-sm-7">
+						<select name="phenotype" id="Phenotype" class="form-control" data-select2-placeholder="Select a phenotype ontology" data-select2-width="resolve">
+							<option value="DO">Disease Ontology</option>
+							<option value="GO">Gene Ontology</option>
+							<option value="HP">Human Phenotype Ontology</option>
+							<option value="MP">Mouse Phenotype Ontology</option>
+							<option value="WP">Worm Phenotype Ontology</option>
+							<option value="YP">Yeast Phenotype Ontology</option>
+							<option value="FP">Fly Phenotype Ontology</option>
+							<option value="FA">Fly Anatomy Ontology</option>
+							<option value="ZA">Zebrafish Anatomy Ontology</option>
+							<option value="AP">Arabidopsis Plant Ontology</option>
+							<option value="KW">UniProtKB KeyWords</option>
+						</select>
+						<p class="help-block">eg: Disease Ontology</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="predthreshold">Prediction cutoff:</label>
+					<div class="col-sm-7">
+						<input name="predthreshold" id="PredThreshold" class="form-control" value="-3.00">
+						<p class="help-block">default value depends on the algorithm</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
+					<div class="col-sm-7">
+						<select name="score" id="Score" class="form-control">
+							<option value="EvoTol">EvoTol</option>
+							<option value="RVIS">RVIS</option>
+							<option value="Constraint">Gene Constraint</option>
+							<option value="Custom">Custom Ranking</option>
+						</select>
+						<p class="help-block">eg: EvoTol</p>
+					</div>
+				</div>
+
+				<div id="score-options"></div>
+
+				<div class="form-group">
+					<button id="submit_subs" name="submit_subs" class="btn btn-primary btn-block">Submit</button>
+				</div>
+			</form>
+		</div>
+		<div class="col-lg-6">
+			<legend>Information</legend>
+
+			<p>fathmm is capable of predicting the functional effects of protein missense mutations by combining sequence conservation within hidden Markov models (HMMs), representing the alignment of homologous sequences and conserved protein domains, with "pathogenicity weights", representing the overall tolerance of the protein/domain to mutations. More information can be found <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3558800/" target="_blank">here</a>.</p>
+
+			<h4>Valid inputs</h4>
+			<ul>
+				<li>
+					<code>&lt;protein&gt; &lt;substitution&gt;</code>
+				</li>
+				<li>
+					<code>dbSNP rs identifiers</code>
+				</li>
+			</ul>
+			<p>Where <code>&lt;protein&gt;</code> is the protein identifier and <code>&lt;substitution&gt;</code> is the amino acid substitution in the conventional one letter format.  Multiple substitutions can be entered on a single line and should be separated by a comma.  <b>We accept SwissProt/TrEMBL, RefSeq and Ensembl protein identifiers</b>, e.g.:</p>
+			<pre>P43026 L441P
+ENSP00000325527 N548I,E1073K,C2307S </pre>
+
+			<h4>Algorithm</h4>
+			<p>Choose the prediction algorithm that better suits your purpose:</p>
+			<ul>
+				<li><b>Unweighted</b>	Return predictions capable of discriminating between disease-causing mutations and neutral polymorphismsbased on sequence conservation.</li>
+				<li><b>Weighted</b>	Returns predictions capable of discriminating between disease-causing mutations and neutral polymorphisms combining sequence conservation with pathogenicity weights.</li>
+				<li><b>Cancer</b>	Returns predictions capable of distinguishing between cancer-promoting/driver mutations and other germline polymorphisms.</li>
+			</ul>
+
+			<h4>Phenotype Associations</h4>
+			<p>fathmm is also capable of annotating the molecular and phenotypic consequences of the mutations. Here, the molecular consequences of mutations are statistically inferred by mapping <a href="http://supfam.cs.bris.ac.uk/SUPERFAMILY/" target="_blank">SUPERFAMILY</a> domains onto the Gene Ontology, the Human Phenotype Ontology and the Mammalian Phenotype Ontology (and more).</p>
+
+			<h4>Prediction Threshold</h4>
+			<p>fathmm prediction threshold can be adjusted and tuned to cater for your individual needs. For example, if you are interested in minimising the number of false positives in your analysis, then you should opt for a conservative threshold, e.g. -3.0. On the other hand, if you are interested in capturing a large proportion of cancer-associated mutations (regardless of the number of false positives), then a less stringent threshold should be selected, e.g. 0.0 or higher.</p>
+		</div>
+	</div>
+
+	<div id="results" class="row collapse">
+		<div id="wait-container" class="row collapse in">
+			<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
+				<div class="spinnerContainer text-center">
+					<div class="row vmargin25">
+						<h3>Running your fathmm analysis.</h3>
+						<h4>This will take just few seconds.</h4>
+					</div>
+					<div class="spinner"></div>
+				</div>
+			</div>
+		</div>
+		<div id="results-container" class="row collapse">
+			<div class="col-lg-12">
+				<div id="IntoleranceChart"></div>
+			</div>
+			<div class="col-lg-12">
+				<div id="genes_box_results" class="col-lg-12"></div>
+				<div id="gene_box_results" class="col-lg-12">
+					<table id="subs_table_out" class="table sortable">
+						<thead>
+							<tr>
+								<th>Entry</th>
+								<th>Protein</th>
+								<th>Mutation</th>
+								<th>FATHMM Prediction</th>
+								<th>FATHMM Score</th>
+								<th>Associated Gene</th>
+								<th><span id="ScoreHeader">EvoTol Percentile</span></th>
+								<th>Hot or not?</th>
+								<th>more...</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+
+
+			<div class="row">
+				<div id="hotzone" class="col-lg-6"></div>
+				<div id="dom_table" class="col-lg-6">
+					<table id="dom_table_out" class="table sortable">
+						<thead>
+							<tr>
+								<th>Domain</th>
+								<th>Damaging Count</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+			<div class="row vmargin25">
+				<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
+					<button id="show-network" class="btn btn-primary btn-block">Show interaction network</button>
+
+					<div class="spinnerContainer text-center" style="display: none;">
+						<div class="row vmargin25">
+							<h3>Retrieving interactions from STRING database</h3>
+						</div>
+						<div class="spinner"></div>
+					</div>
+				</div>
+			</div>
+
+			<div id="cy-container" class="row" style="display: none;"></div>
+		</div>
+	</div>
+</div>

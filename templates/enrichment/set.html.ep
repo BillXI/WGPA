@@ -1,0 +1,116 @@
+% title 'DC Genes - Enrichment Analysis - '.$setName;
+% content_for css => begin
+	<link type="text/css" href="/css/app/views/gsearesults.css" rel="stylesheet"/>
+% end
+% content_for scripts => begin
+	<script type="text/javascript" src="/js/vendors/springy.js" ></script>
+	<script type="text/javascript" src="/js/vendors/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
+	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
+	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
+	<script type="text/javascript" src="/js/app/views/set.js" ></script>
+% end
+
+% content_for modals => begin
+<div class="modal fade" id="esModal" tabindex="-1" role="dialog" aria-labelledby="esModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title" id="esModal">Enrichment Score (ES)</h4>
+			</div>
+
+			<div class="modal-body">
+				<p>The primary result of the gene set enrichment analysis is the enrichment score (ES), which reflects the degree to which a gene set is overrepresented at the top or bottom of a ranked list of genes. GSEA calculates the ES by walking down the ranked list of genes, increasing a running-sum statistic when a gene is in the gene set and decreasing it when it is not. The magnitude of the increment depends on the correlation of the gene with the phenotype. The ES is the maximum deviation from zero encountered in walking the list. A positive ES indicates gene set enrichment at the top of the ranked list; a negative ES indicates gene set enrichment at the bottom of the ranked list.</p>
+				<p>In the analysis results, the enrichment plot provides a graphical view of the enrichment score for a gene set:</p>
+				<div class="text-center">
+					<img src="http://www.broadinstitute.org/gsea/doc/ug_images/anl-enrichment-geneset-plot-annotated.gif" alt="Enriment Score (ES)">
+				</div>
+				<ul>
+					<li>The top portion of the plot shows the running ES for the gene set as the analysis walks down the ranked list. The score at the peak of the plot (the score furthest from 0.0) is the ES for the gene set. Gene sets with a distinct peak at the beginning (such as the one shown here) or end of the ranked list are generally the most interesting.</li>
+					<li>
+						The middle portion of the plot shows where the members of the gene set appear in the ranked list of genes.
+						<p>The <b>leading edge subset</b> of a gene set is the subset of members that contribute most to the ES. For a positive ES (such as the one shown here), the leading edge subset is the set of members that appear in the ranked list prior to the peak score. For a negative ES, it is the set of members that appear subsequent to the peak score.</p>
+					</li>
+					<li>The bottom portion of the plot shows the value of the ranking metric as you move down the list of ranked genes. The ranking metric measures a gene’s correlation with a phenotype. The value of the ranking metric goes from positive to negative as you move down the ranked list. A positive value indicates correlation with the first phenotype and a negative value indicates correlation with the second phenotype. For continuous phenotypes (time series or gene of interest), a positive value indicates correlation with the phenotype profile and a negative value indicates no correlation or inverse correlation with the profile.</li>
+				</ul>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+% end
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-12">
+			<h2>
+				% if ($isOnlySet) {
+				%= "$title:" if $title
+				% } else {
+				<a href="./" class="btn btn-default btn-large"><i class="glyphicon glyphicon-arrow-left"></i></a>
+				% }
+				<%= $setName %>
+			</h2>
+		</div>
+	</div>
+	<div class="row vmargin25">
+		<div class="col-lg-12 text-center">
+			<table id="SetSummary">
+				<tbody>
+					%== $summaryTable
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row vmargin25">
+		<div class="col-lg-6 text-center">
+			<figure>
+				<img src="<%= $enrichmentPlot %>" alt="Enrichment plot">
+				<figcaption>Profile of the Running ES Score & Positions of GeneSet Members on the Rank Ordered List (<a href="javascript:void(0);" data-toggle="modal" data-target="#esModal">+ info</a>)</figcaption>
+			</figure>
+		</div>
+		<div class="col-lg-6 text-center">
+			<figure>
+				<img src="<%= $esDistribution %>" alt="ES distribution">
+				<figcaption>Random ES distribution. Gene set null distribution of ES</figcaption>
+			</figure>
+		</div>
+	</div>
+
+	<div class="row vmargin25">
+		<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
+			<button id="show-network" class="btn btn-primary btn-block">Show interaction network</button>
+
+			<div class="spinnerContainer text-center" style="display: none;">
+				<div class="row vmargin25">
+					<h3>Retrieving interactions from STRING database</h3>
+				</div>
+				<div class="spinner"></div>
+			</div>
+		</div>
+	</div>
+
+	<div id="cy-container" class="row" style="display: none;"></div>
+
+	<div class="row vmargin25">
+		<div class="col-lg-12 text-center">
+			<table>
+				<thead>
+					<tr>
+						<th>Gene</th>
+						<th>Rank</th>
+						<th>Rank Metric Score</th>
+						<th>Running ES</th>
+						<th>Core Enrichment</th>
+					</tr>
+				</thead>
+				<tbody>
+					%== $genesTable
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

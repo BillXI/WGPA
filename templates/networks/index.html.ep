@@ -1,0 +1,88 @@
+% title 'DC Genes - Network Analysis';
+% content_for scripts => begin
+	<script type="text/javascript" src="/js/vendors/springy.js" ></script>
+	<script type="text/javascript" src="/js/vendors/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
+	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
+	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
+	<script type="text/javascript" src="/js/app/views/networks.js" ></script>
+	<script type="text/javascript" src="/js/app/views/scoreForm.js" ></script>
+% end
+
+<div class="container  fill">
+	<div class="row">
+		<div class="col-lg-12">
+			<h2>Upload your gene network to visualize its evolutionary intolerance</h2>
+		</div>
+	</div>
+	<div id="form-container" class="row">
+		<div class="col-lg-6">
+			<legend>Visualize the evolutionary intolerance of a Gene Network</legend>
+			<p>Enter a gene network, choose a cellular context and press submit to investigate their evolutionary intolerance.</p>
+				
+			<form class="form-horizontal" role="form">
+				<div class="form-group">
+					<div class="col-sm-12">
+						<textarea id="network-box" name="network-box" class="form-control table" rows="10"></textarea>
+						<p class="help-block">or try an example: <a href="javascript:;" id="epi4k">Epi4K</a> or <a href="javascript:;" id="populatebox">Cardiac muscle contraction pathway</a></p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="genes-file">or upload your own file:</label>
+					<div class="col-sm-7">
+						<input type="file" id="network-file" name="network-file" class="form-control">
+						<p class="help-block">text file where each line is a pair of genes</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
+					<div class="col-sm-7">
+						<select name="score" id="Score" class="form-control">
+							<option value="EvoTol">EvoTol</option>
+							<option value="RVIS">RVIS</option>
+							<option value="Constraint">Gene Constraint</option>
+							<option value="Custom">Custom Ranking</option>
+						</select>
+						<p class="help-block">eg: EvoTol</p>
+					</div>
+				</div>
+
+				<div id="score-options"></div>
+
+				<div class="form-group">
+					<button id="submit-button" name="submit-button" class="btn btn-primary btn-block">Submit</button>
+				</div>
+			</form>
+		</div>
+	<div class="col-lg-6">
+						<legend>Information</legend>
+
+						<p>Genes do not operate alone but are subject to a complex regulatory network and as such viewing the intolerance to mutation for many genes within the same network can help to understand how mutations may play a role in disease.</p>
+
+						<h4>Visualize existing network</h4>
+						<p>Passing a list of genes will render the network getting the relationships between them from the STRING database.</p>
+						
+						<p>
+							<code>&lt;gene1&gt;</code><br/>
+							<code>&lt;gene2&gt;</code><br/>
+							<code>&lt;gene3&gt;</code><br/>
+							<code>&lt;gene4&gt;</code>
+						</p>
+
+						<h4>Visualize existing network</h4>
+						<p>Passing a list of gene pairs will render the network as defined. Each line represents a link between two genes. For example, the first line represents an edge between the genes <code>&lt;gene1&gt;</code> and <code>&lt;gene2&gt;</code>.</p>
+						
+						<p>
+							<code>&lt;gene1&gt; &lt;gene2&gt;</code><br/>
+							<code>&lt;gene1&gt; &lt;gene3&gt;</code><br/>
+							<code>&lt;gene2&gt; &lt;gene3&gt;</code><br/>
+							<code>&lt;gene1&gt; &lt;gene4&gt;</code>
+						</p>
+
+						<p>At the moment we only support gene names as gene identifiers.</p>
+				</div>
+	</div>
+	<div id="cy-container" class="row collapse"></div>
+</div>

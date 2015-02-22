@@ -1,0 +1,163 @@
+% title 'DC Genes - Enrichment Analysis';
+% content_for scripts => begin
+	<script type="text/javascript" src="/js/app/views/enrichment.js" ></script>
+	<script type="text/javascript" src="/js/app/views/scoreForm.js" ></script>
+% end
+
+% content_for modals => begin
+<div class="modal fade" id="grpModal" tabindex="-1" role="dialog" aria-labelledby="grpModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title" id="grpModalLabel">GRP: Gene set file format (*.grp)</h4>
+			</div>
+
+			<div class="modal-body">
+				<p>The GRP files contain a single gene set in a simple newline-delimited text format. The GRP file format is organized as follows:</p>
+				<img src="http://www.broadinstitute.org/cancer/software/gsea/wiki/images/a/a4/Grp_format_snapshot.gif" alt="image:grp_format_snapshot.gif">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="gmxModal" tabindex="-1" role="dialog" aria-labelledby="gmxModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title" id="gmxModalLabel">GMX: Gene MatriX file format (*.gmx)</h4>
+			</div>
+
+			<div class="modal-body">
+				<p>The GMX file format is a tab delimited file format that describes gene sets. In the GMX format, each column represents a gene set; in the GMT format, each row represents a gene set. The GMX file format is organized as follows:</p>
+				<img src="http://www.broadinstitute.org/cancer/software/gsea/wiki/images/a/ae/Gmx_format_snapshot.gif" alt="image:gmx_format_snapshot.gif">
+
+				<p>Each gene set is described by a name, a description, and the genes in the gene set. The description is actually never used so it can be a dummy value like "na".</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="gmtModal" tabindex="-1" role="dialog" aria-labelledby="gmtModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title" id="gmtModalLabel">GMT: Gene Matrix Transposed file format (*.gmt)</h4>
+			</div>
+
+			<div class="modal-body">
+				<p>The GMT file format is a tab delimited file format that describes gene sets. In the GMT format, each row represents a gene set; in the GMX format, each column represents a gene set. The GMT file format is organized as follows:</p>
+				<img src="http://www.broadinstitute.org/cancer/software/gsea/wiki/images/3/3d/Gmt_format_snapshot.gif" alt="image:gmt_format_snapshot.gif">
+
+				<p>Each gene set is described by a name, a description, and the genes in the gene set. The description is actually never used so it can be a dummy value like "na".</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="wgcnaModal" tabindex="-1" role="dialog" aria-labelledby="gmtModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title" id="gmtModalLabel">WGCNA: Weighted Gene Co-Expression Network Analysis file format (*.wgcna)</h4>
+			</div>
+
+			<div class="modal-body">
+				<p>The WGCNA file format is a tab/space delimited file format that describes gene sets.The WGCNA format is formed by  two columns, each row contains two elements. The first element is the identifier of the gene set that the gene belong to and the second element is the name of the gene.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+% end
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-12">
+			<h2>Upload your gene set to see the evolutionary intolerance enrichment</h2>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-6">
+			<legend>Run a  GSEA on a list of gene names</legend>
+			<p>Enter one or more gene sets, choose a cellular context and expression threshold then press submit to investigate their evolutionary intolerance.</p>
+				
+			<form class="form-horizontal" role="form">
+				<div class="form-group">
+					<div class="col-sm-12">
+						<textarea id="Genes" name="Genes" class="form-control table" rows="10"></textarea>
+						<p class="help-block">or try an example: <a href="javascript:;" id="epi4k">Epi4K</a></p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="genes-file">or upload your own file:</label>
+					<div class="col-sm-7">
+						<input type="file" id="GenesFile" name="genes-file" class="form-control">
+						<p class="help-block">.GRP, .GMX or .GMT file</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
+					<div class="col-sm-7">
+						<select name="score" id="Score" class="form-control">
+							<option value="EvoTol">EvoTol</option>
+							<option value="RVIS">RVIS</option>
+							<option value="Constraint">Gene Constraint</option>
+							<option value="Custom">Custom Ranking</option>
+						</select>
+						<p class="help-block">eg: EvoTol</p>
+					</div>
+				</div>
+
+				<div id="score-options"></div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="genes-file">Analysis title (Optional):</label>
+					<div class="col-sm-7">
+						<input type="text" id="Title" name="title" class="form-control">
+						<p class="help-block">eg: Epilepsy (Patient 3)</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<button id="runGSEA" name="runGSEA" class="btn btn-primary btn-block">Submit</button>
+				</div>
+			</form>
+		</div>
+		<div class="col-lg-6">
+			<legend>Information</legend>
+
+			<p>Gene Set Enrichment Analysis (GSEA) is a computational method that determines whether an <i>a priori</i> defined set of genes shows statistically significant, concordant differences between two biological states (e.g. phenotypes). The Gene Set Enrichment Analysis <a href="http://www.pnas.org/content/102/43/15545.full" target="_blank">PNAS paper</a> fully describes the algorithm. We use the implementation develop by <a href="http://www.broadinstitute.org/" target="_blank">Broad Institute of MIT and Harvard.</a></p>
+
+			<h4>Valid inputs</h4>
+			<p>
+				Click on them for more info
+				<ul>
+					<li><a href="javascript:void(0);" data-toggle="modal" data-target="#grpModal">GRP: Gene set file format (*.grp)</a></li>
+					<li><a href="javascript:void(0);" data-toggle="modal" data-target="#gmxModal">GMX: Gene MatriX file format (*.gmx)</a></li>
+					<li><a href="javascript:void(0);" data-toggle="modal" data-target="#gmtModal">GMT: Gene Matrix Transposed file format (*.gmt)</a></li>
+					<li><a href="javascript:void(0);" data-toggle="modal" data-target="#wgcnaModal">WGCNA: Weighted Gene Co-Expression Network Analysis file format (*.wgcna)</a></li>
+				</ul>
+			</p>
+
+			<p>Sets with less than 10 genes or more than 500 genes will be ignored by the analysis</p>
+			<p>At the moment we only support gene names as gene identifiers.</p>
+		</div>
+	</div>
+</div>

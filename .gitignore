@@ -1,0 +1,7 @@
+dist
+log
+
+lib/GSEA/*
+!lib/GSEA/src
+!lib/GSEA/*.properties
+!lib/GSEA/Manifest.txt

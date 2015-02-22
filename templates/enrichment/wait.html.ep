@@ -1,0 +1,21 @@
+% title 'DC Genes - Enrichment Analysis Not Ready';
+
+% content_for scripts => begin
+	<script type="text/javascript" src="/js/app/views/wait.js" ></script>
+	<script type="text/javascript">
+		Wait.Init('<%= $id %>');
+	</script>
+% end
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-12 text-center">
+			<h2 id="Header"><%= $header %></h2>
+			<p id="Message"><%= $message %></p>
+			<div class="spinner"></div>
+			<div class="controls">
+				<button id="AddBookMark" class="btn btn-primary">Add this page to favorites</button>
+			</div>
+		</div>
+	</div>
+</div>
