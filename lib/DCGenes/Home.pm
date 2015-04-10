@@ -1,5 +1,4 @@
 package DCGenes::Home;
-use DCGenes::Utils;
 use Mojo::Base 'Mojolicious::Controller';
 
 sub index {

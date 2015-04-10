@@ -38,9 +38,9 @@ public class GSEARunner {
             return;
         }
         String STUDY_LABEL = "EvoTol_Analysis";
-	String INPUT_FOLDER = GSEA_FOLDER.resolve("Inputs").toString();
-	String RESULTS_FOLDER = GSEA_FOLDER.resolve("Results").toString();
-	String DATA_FOLDER = GSEA_FOLDER.resolve("Data").toString();
+    	String INPUT_FOLDER = GSEA_FOLDER.resolve("Inputs").toString();
+    	String RESULTS_FOLDER = GSEA_FOLDER.resolve("Results").toString();
+    	String DATA_FOLDER = GSEA_FOLDER.resolve("Data").toString();
         String LOG_FILE = GSEA_FOLDER.resolve("../../log/gsea.log").toString();
         
         // Logger configuration

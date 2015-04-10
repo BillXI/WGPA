@@ -1,9 +1,9 @@
-% title 'DC Genes - Enrichment Analysis Not Ready';
+% title "DC Genes - $customTitle";
 
 % content_for scripts => begin
 	<script type="text/javascript" src="/js/app/views/wait.js" ></script>
 	<script type="text/javascript">
-		Wait.Init('<%= $id %>');
+		Wait.Init('<%= $url %>', <%= $id %>, <%= $polling %>);
 	</script>
 % end
 

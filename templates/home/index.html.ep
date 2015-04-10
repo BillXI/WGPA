@@ -9,38 +9,47 @@
 			<h1>Disease-Causing Genes</h1>
 		</div>
 		<p>It is currently established that rare <em>de novo</em> mutations cause a number of diseases and there are several approaches to find a set of prospective disease-causing genes e.g. case-parent trio studies. This sets can be studied and analized using some statistical tool. However, for diseases with extensive locus heterogeneity, such as autism spectrum disorders (ASDs), the signal from de novo mutations is distributed across many genes, making it difficult to point the disease-causing mutations.</p>
-		<p>DC Genes combine the most recent scores developed to asses the intolerance of a gene to mutations (RVIS, EvoTol, Gene Constraints, ...) whith a set of widely used analysis (GSEA, fatmhh, gene networks, ...) in order to distinguish the genes containing disease-relevant mutations from genes containing irrelevant mutations.</p>
+		<p>DC Genes combine the most recent scores developed to asses the intolerance of a gene to mutations (RVIS, EvoTol, Gene Constraints, ...) whith a set of widely used analysis (GSEA, fatmhh, polyphen, gene networks, ...) in order to distinguish the genes containing disease-relevant mutations from genes containing irrelevant mutations.</p>
 	</div>
 </div>
 
 <div class="container">
 	<div class="row text-justify">
-		<div class="col-lg-4">
+		<div class="col-lg-3">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/enrichment"><img src="/img/enrichment_icon.png" width="120px" class="coin"></a>
+					<a href="/basic"><img src="/img/networks-icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/enrichment"><h1>Enrichment</h1></a>
+				<a href="/basic"><h1>Basic</h1></a>
+			</div>
+			<p>Enter your own gene set or network to visualize its evolutionary intolerance.</p>
+		</div>
+		<div class="col-lg-3">
+			<div class="text-center">
+				<div class="coin-container">
+					<a href="/gsea"><img src="/img/enrichment_icon.png" width="120px" class="coin"></a>
+				</div>
+				<a href="/gsea"><h1>GSEA</h1></a>
 			</div>
 			<p>Enter one or more gene sets, choose a cellular context and expression threshold and run a GSEA analysis to analyze the evolutionary intolerance enrichment.</p>
 		</div>
-		<div class="col-lg-4">
+		<div class="col-lg-3">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/substitutions"><img src="/img/substitutions-icon.png" width="120px" class="coin"></a>
+					<a href="/fathmm"><img src="/img/substitutions-icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/substitutions"><h1>Substitutions</h1></a>
+				<a href="/fathmm"><h1>fathmm</h1></a>
 			</div>
 			<p>Identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging and which are in a gene that is intolerant to mutation calculating their FATHMM and intolerance scores.</p>
 		</div>
-		<div class="col-lg-4">
+		<div class="col-lg-3">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/networks"><img src="/img/networks-icon.png" width="120px" class="coin"></a>
+					<a href="/polyphen"><img src="/img/substitutions-icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/networks"><h1>Networks</h1></a>
+				<a href="/polyphen"><h1>PolyPhen-2</h1></a>
 			</div>
-			<p>Enter your own gene network to visualize it evolutionary intolerance.</p>
+			<p>Identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging and which are in a gene that is intolerant to mutation calculating their PolyPhen-2 and intolerance scores.</p>
 		</div>
 	</div>
 </div>

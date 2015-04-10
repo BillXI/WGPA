@@ -151,8 +151,8 @@
 			yAxis: {
 				title: {
 					text: 'Node degree'
-				}
-
+				},
+				min: 0
 			},
 			legend: {
 				enabled: true

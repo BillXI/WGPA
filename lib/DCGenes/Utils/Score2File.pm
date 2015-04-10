@@ -1,7 +1,7 @@
 package DCGenes::Utils::Score2File;
 use DCGenes::Utils::Paths;
 
-my $dataFolder = $DCGenes::Utils::Paths::GSEA{DATA_FOLDER};
+my $dataFolder = $DCGenes::Utils::Paths::GSEA{RANKINGS_FOLDER};
 
 sub EvoTol {
 	my $ontology = shift;

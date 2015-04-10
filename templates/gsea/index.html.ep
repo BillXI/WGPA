@@ -1,7 +1,7 @@
-% title 'DC Genes - Enrichment Analysis';
+% title 'DC Genes - GSEA Analysis';
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/app/views/enrichment.js" ></script>
-	<script type="text/javascript" src="/js/app/views/scoreForm.js" ></script>
+	<script type="text/javascript" src="/js/app/modules/scoreForm.js" ></script>
+	<script type="text/javascript" src="/js/app/views/gsea/index.js" ></script>
 % end
 
 % content_for modals => begin
@@ -113,6 +113,14 @@
 				</div>
 
 				<div class="form-group">
+					<label class="control-label col-sm-5" for="title">Analysis title (Optional):</label>
+					<div class="col-sm-7">
+						<input type="text" id="Title" name="title" class="form-control">
+						<p class="help-block">eg: Epilepsy (Patient 3)</p>
+					</div>
+				</div>
+
+				<div class="form-group">
 					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
 					<div class="col-sm-7">
 						<select name="score" id="Score" class="form-control">
@@ -121,19 +129,10 @@
 							<option value="Constraint">Gene Constraint</option>
 							<option value="Custom">Custom Ranking</option>
 						</select>
-						<p class="help-block">eg: EvoTol</p>
 					</div>
 				</div>
 
 				<div id="score-options"></div>
-
-				<div class="form-group">
-					<label class="control-label col-sm-5" for="genes-file">Analysis title (Optional):</label>
-					<div class="col-sm-7">
-						<input type="text" id="Title" name="title" class="form-control">
-						<p class="help-block">eg: Epilepsy (Patient 3)</p>
-					</div>
-				</div>
 
 				<div class="form-group">
 					<button id="runGSEA" name="runGSEA" class="btn btn-primary btn-block">Submit</button>

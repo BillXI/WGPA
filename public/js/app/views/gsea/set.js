@@ -39,7 +39,7 @@ var Set = (function (document) {
 						showNetwokButton.removeAttribute('disabled');
 					}
 				};
-				networkRequest.send(JSON.stringify({genes: genes}));
+				networkRequest.send(JSON.stringify({ genes: genes }));
 			}
 		}
 	}

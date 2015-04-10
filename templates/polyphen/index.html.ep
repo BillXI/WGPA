@@ -1,0 +1,132 @@
+% title 'DC Genes - PolyPhen-2 Analysis';
+% content_for scripts => begin
+	<script type="text/javascript" src="/js/app/modules/scoreForm.js" ></script>
+	<script type="text/javascript" src="/js/app/views/polyphen/index.js" ></script>
+% end
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-12">
+			<h2>Upload your own De-novo mutation containing substitutions</h2>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-6">
+			<legend>Run Polyphen-2 on a set of substitutions</legend>
+			<p>Enter a set of substitutions and press submit to investigate their evolutionary intolerance.</p>
+				
+			<form class="form-horizontal" role="form">
+				<div class="form-group">
+					<div class="col-sm-12">
+						<textarea id="manual-input" name="manual-input" class="form-control table" rows="10"></textarea>
+						<p class="help-block">or try an example: <a href="javascript:;" id="sample-batch">Sample Batch</a></p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="file-input">or upload your own file:</label>
+					<div class="col-sm-7">
+						<input type="file" id="file-input" name="file-input" class="form-control">
+						<p class="help-block">where each line is a substitution</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="fasta-file">FASTA file (Optional):</label>
+					<div class="col-sm-7">
+						<input type="file" id="fasta-file" name="fasta-file" class="form-control">
+						<p class="help-block">Protein sequence in fasta format with a definition line: <code>> PROTEIN_IDENTIFIER</code></p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="classifier-model">Classifier Model:</label>
+					<div class="col-sm-7">				
+						<select id="classifier-model" name="classifier-model" class="form-control">
+							<option selected="selected" value="HumDiv">HumDiv</option>
+							<option value="HumVar">HumVar</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="genome-assembly">Genome Assembly:</label>
+					<div class="col-sm-7">				
+						<select id="genome-assembly" name="genome-assembly" class="form-control">
+							<option selected="selected" value="hg19">GRCh37/hg19</option>
+							<option value="hg18">NCBI36/hg18</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="transcripts">Transcripts:</label>
+					<div class="col-sm-7">				
+						<select id="transcripts" name="transcripts" class="form-control">
+							<option value="0">All</option>
+							<option selected="selected" value="1">Canonical</option>
+							<option value="3">CCDS</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="annotations">Annotations:</label>
+					<div class="col-sm-7">				
+						<select id="annotations" name="annotations" class="form-control">
+							<option value="">All</option>
+							<option value="c">Coding</option>
+							<option selected="selected" value="m">Missense</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="title">Analysis title (Optional):</label>
+					<div class="col-sm-7">
+						<input type="text" id="title" name="title" class="form-control">
+						<p class="help-block">eg: Epilepsy (Patient 3)</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="pred-threshold">Prediction cutoff:</label>
+					<div class="col-sm-7">
+						<input type="text" id="pred-threshold" name="pred-threshold" class="form-control">
+						<p class="help-block">the percentile to consider</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
+					<div class="col-sm-7">
+						<select name="score" id="Score" class="form-control">
+							<option value="EvoTol">EvoTol</option>
+							<option value="RVIS">RVIS</option>
+							<option value="Constraint">Gene Constraint</option>
+							<option value="Custom">Custom Ranking</option>
+						</select>
+					</div>
+				</div>
+
+				<div id="score-options"></div>
+
+				<div class="form-group">
+					<button id="runPolyPhen" name="runPolyPhen" class="btn btn-primary btn-block">Submit</button>
+				</div>
+			</form>
+		</div>
+		<div class="col-lg-6">
+			<legend>Information</legend>
+
+			<p>PolyPhen-2 uses sequence- and structure-based information to predict the effect of variants using a Bayesian approach. This <a href="http://genetics.bwh.harvard.edu/pph2/dokuwiki/_media/nmeth0410-248.pdf" target="_blank">paper</a> fully describes the approach and the difference with the previous PolyPhen version.</p>
+
+			<h4>Valid inputs</h4>
+			<p>
+				PolyPhen-2 uses sequence- and structure-based information to predict the effect of variants using a Bayesian approach. 
+				Click on them for more info
+
+			</p>
+		</div>
+	</div>
+</div>

@@ -1,24 +1,29 @@
-% title 'DC Genes - Substitutions Analysis';
+% title 'DC Genes - fathmm Analysis';
+% content_for css => begin
+	<link type="text/css" href="/css/vendors/TSorter.css" rel="stylesheet"/>
+% end
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/vendors/TSorter_1.js"></script>
+	<script type="text/javascript" src="/js/vendors/TSorter.js"></script>
 	<script type="text/javascript" src="/js/vendors/springy.js" ></script>
 	<script type="text/javascript" src="/js/vendors/cytoscape.min.js" ></script>
 	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
 	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
+	<script type="text/javascript" src="/js/app/modules/barschart.js" ></script>
 	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
-	<script type="text/javascript" src="/js/app/views/substitutions.js" ></script>	
-	<script type="text/javascript" src="/js/app/views/scoreForm.js" ></script>
+	<script type="text/javascript" src="/js/app/modules/scatterchart.js" ></script>
+	<script type="text/javascript" src="/js/app/modules/scoreForm.js" ></script>
+	<script type="text/javascript" src="/js/app/views/fathmm.js" ></script>	
 % end
 
-<div class="container">
-	<div id="form" class="row collapse in">
-		<div class="row">
-			<div class="col-lg-12">
-				<h2>Upload your own De-novo mutation containing substitutions</h2>
-			</div>
+<div id="form-container" class="container collapse in">
+	<div class="row">
+		<div class="col-lg-12">
+			<h2>Upload your own De-novo mutation containing substitutions</h2>
 		</div>
+	</div>
+	<div class="row">
 		<div class="col-lg-6">	
-			<legend>Investigate a set of substitutions</legend>
+			<legend>Run fathmm on a set of substitutions</legend>
 			<p>Enter a set of substitutions and press submit to investigate their evolutionary intolerance.</p>
 			
 			<form class="form-horizontal" role="form">
@@ -33,19 +38,18 @@
 					<label class="control-label col-sm-5" for="genes-file">or upload your own file:</label>
 					<div class="col-sm-7">
 						<input type="file" id="file" name="file" class="form-control">
-						<p class="help-block">text file where each line is a substitution</p>
+						<p class="help-block">where each line is a substitution</p>
 					</div>
 				</div>
 
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="algorithm">Prediction algorithm:</label>
 					<div class="col-sm-7">
-						<select name="algorithm" id="Algorithm" class="form-control">
+						<select name="algorithm" id="algorithm" class="form-control">
 							<option value="INHERITED">Weighted</option>
 							<option value="UNWEIGHTED">Unweighted</option>
 							<option value="CANCER">Cancer</option>
 						</select>
-						<p class="help-block">eg: Inherited</p>
 					</div>
 				</div>
 
@@ -56,23 +60,23 @@
 							<option value="DO">Disease Ontology</option>
 							<option value="GO">Gene Ontology</option>
 							<option value="HP">Human Phenotype Ontology</option>
+<!-- 						Only human is supported for now
 							<option value="MP">Mouse Phenotype Ontology</option>
 							<option value="WP">Worm Phenotype Ontology</option>
 							<option value="YP">Yeast Phenotype Ontology</option>
 							<option value="FP">Fly Phenotype Ontology</option>
 							<option value="FA">Fly Anatomy Ontology</option>
 							<option value="ZA">Zebrafish Anatomy Ontology</option>
-							<option value="AP">Arabidopsis Plant Ontology</option>
+							<option value="AP">Arabidopsis Plant Ontology</option> -->
 							<option value="KW">UniProtKB KeyWords</option>
 						</select>
-						<p class="help-block">eg: Disease Ontology</p>
 					</div>
 				</div>
 
 				<div class="form-group">
-					<label class="control-label col-sm-5" for="predthreshold">Prediction cutoff:</label>
+					<label class="control-label col-sm-5" for="pred-threshold">Prediction cutoff:</label>
 					<div class="col-sm-7">
-						<input name="predthreshold" id="PredThreshold" class="form-control" value="-3.00">
+						<input name="pred-threshold" id="pred-threshold" class="form-control" value="-3.00">
 						<p class="help-block">default value depends on the algorithm</p>
 					</div>
 				</div>
@@ -86,14 +90,13 @@
 							<option value="Constraint">Gene Constraint</option>
 							<option value="Custom">Custom Ranking</option>
 						</select>
-						<p class="help-block">eg: EvoTol</p>
 					</div>
 				</div>
 
 				<div id="score-options"></div>
 
 				<div class="form-group">
-					<button id="submit_subs" name="submit_subs" class="btn btn-primary btn-block">Submit</button>
+					<button id="submit-button" name="submit-button" class="btn btn-primary btn-block">Submit</button>
 				</div>
 			</form>
 		</div>
@@ -130,74 +133,83 @@ ENSP00000325527 N548I,E1073K,C2307S </pre>
 			<p>fathmm prediction threshold can be adjusted and tuned to cater for your individual needs. For example, if you are interested in minimising the number of false positives in your analysis, then you should opt for a conservative threshold, e.g. -3.0. On the other hand, if you are interested in capturing a large proportion of cancer-associated mutations (regardless of the number of false positives), then a less stringent threshold should be selected, e.g. 0.0 or higher.</p>
 		</div>
 	</div>
+</div>
+<div id="wait-container"  class="container collapse">
+	<div class="row">
+		<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
+			<div class="spinnerContainer text-center">
+				<div class="row vmargin25">
+					<h3>Running your fathmm analysis.</h3>
+					<h4>This will take just few seconds.</h4>
+				</div>
+				<div class="spinner"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="results-container" class="container fill collapse">
+	<div class="row">
+		<div class="col-lg-12 text-center">
+			<h2>
+				fathmm Analysis Results
+			</h2>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-12">
+			<div id="bars-chart"></div>
+		</div>
+		<div class="row">
+			<div id="summary" class="col-lg-12"></div>
+		</div>
+		<div class="row">
+			<div class="col-lg-12">
+				<table id="results-table" class="table">
+					<thead>
+						<tr>
+							<th>Entry</th>
+							<th>Protein</th>
+							<th>Gene</th>
+							<th>Mutation</th>
+							<th>FATHMM Prediction</th>
+							<th>FATHMM Score</th>
+							<th><span id="score-header">EvoTol</span> Percentile</th>
+							<th>Hot or not?</th>
+							<th>more...</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
 
-	<div id="results" class="row collapse">
-		<div id="wait-container" class="row collapse in">
+		<div class="row">
+			<div id="hotzone-scatter" class="col-lg-6"></div>
+			<div class="col-lg-6">
+				<table id="dom-table" class="table">
+					<thead>
+						<tr>
+							<th>Domain</th>
+							<th>Damaging Count</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+		<div class="row vmargin25">
 			<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
-				<div class="spinnerContainer text-center">
+				<button id="show-network" class="btn btn-primary btn-block">Show interaction network</button>
+
+				<div class="spinnerContainer text-center" style="display: none;">
 					<div class="row vmargin25">
-						<h3>Running your fathmm analysis.</h3>
-						<h4>This will take just few seconds.</h4>
+						<h3>Retrieving interactions from STRING database</h3>
 					</div>
 					<div class="spinner"></div>
 				</div>
 			</div>
 		</div>
-		<div id="results-container" class="row collapse">
-			<div class="col-lg-12">
-				<div id="IntoleranceChart"></div>
-			</div>
-			<div class="col-lg-12">
-				<div id="genes_box_results" class="col-lg-12"></div>
-				<div id="gene_box_results" class="col-lg-12">
-					<table id="subs_table_out" class="table sortable">
-						<thead>
-							<tr>
-								<th>Entry</th>
-								<th>Protein</th>
-								<th>Mutation</th>
-								<th>FATHMM Prediction</th>
-								<th>FATHMM Score</th>
-								<th>Associated Gene</th>
-								<th><span id="ScoreHeader">EvoTol Percentile</span></th>
-								<th>Hot or not?</th>
-								<th>more...</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</div>
-			</div>
 
-
-			<div class="row">
-				<div id="hotzone" class="col-lg-6"></div>
-				<div id="dom_table" class="col-lg-6">
-					<table id="dom_table_out" class="table sortable">
-						<thead>
-							<tr>
-								<th>Domain</th>
-								<th>Damaging Count</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</div>
-			</div>
-			<div class="row vmargin25">
-				<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
-					<button id="show-network" class="btn btn-primary btn-block">Show interaction network</button>
-
-					<div class="spinnerContainer text-center" style="display: none;">
-						<div class="row vmargin25">
-							<h3>Retrieving interactions from STRING database</h3>
-						</div>
-						<div class="spinner"></div>
-					</div>
-				</div>
-			</div>
-
-			<div id="cy-container" class="row" style="display: none;"></div>
-		</div>
+		<div id="cy-container" class="row" style="display: none;"></div>
 	</div>
 </div>

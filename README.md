@@ -8,7 +8,7 @@ The website is completely developed using [Mojolicious](http://mojolicio.us/) so
 
 ### Necessary adjustments
 
-It's necessary to change the variable $RootFolder in `lib/DCGenes/Utils/Paths.pm` to the path of the folder where you are deploying the website to.
+It's necessary to change the variable $rootFolder in `lib/DCGenes/Utils/Paths.pm` to the path of the folder where you are deploying the website to.
 
 Also it's necesary to update the database credentials on 3 files:
 

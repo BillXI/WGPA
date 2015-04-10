@@ -1,0 +1,11 @@
+/* Up and Down Arrows */
+table th.descend:after{
+	content: "\25B2";
+}
+table th.ascend:after{
+	content: "\25BC";
+}
+
+table th {
+	cursor: pointer;
+}

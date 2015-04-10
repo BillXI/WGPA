@@ -1,4 +1,4 @@
-package DCGenes::Enrichment;
+package DCGenes::Gsea;
 use DCGenes::Utils;
 use DCGenes::Utils::DB;
 use DCGenes::Utils::Paths;
@@ -14,7 +14,7 @@ sub index {
 	return $c->render();
 }
 
-sub queue {
+sub submit {
 	my $c = shift;
 
 	# Check file size
@@ -45,15 +45,12 @@ sub queue {
 	}
 
 	return $c->render(status => 400, json => { message => "Invalid ontology or threshold selected." })
-		unless (defined $rnk_path);
+		unless defined $rnk_path;
 
-	$dbh->do("INSERT INTO GSEAAnalysis (title, status, score, ontology, threshold) VALUES ('$title', 'Queued', '$score', '$ontology', '$threshold');");
+	$dbh->do("INSERT INTO GSEAAnalysis (Title, Score, Ontology, Threshold) VALUES ('$title', '$score', '$ontology', '$threshold');");
 	my $id = $dbh->{mysql_insertid};
 
-	return $c->render_exception
-		unless $id;
-	
-	mkdir $GSEA{INPUT_FOLDER} unless -e $GSEA{INPUT_FOLDER};
+	return $c->render_exception unless $id;
 
 	my $ext = 'grp';
 	if (defined $genesFile) {
@@ -64,7 +61,7 @@ sub queue {
 		$error = 'The gene sets file uploaded can\'t be empty' unless $genesFile->size;
 		$error = 'Only gmt, gmx, grp and wgcna files are valid to submit gene sets.' unless $valid_ext{$ext};
 		unless (defined $error) {
-			$dbh->do("DELETE FROM GSEAAnalysis WHERE id=$id;");
+			$dbh->do("DELETE FROM GSEAAnalysis WHERE Id=$id;");
 			DCGenes::Utils::DB::Disconnect($dbh);
 			return $c->render(status => 400, json => { message => $error});
 		}
@@ -80,14 +77,14 @@ sub queue {
 		my $gmt_path = $GSEA{INPUT_FOLDER}."/$id.grp";
 		my $file;
 		unless (open $file, '>'.$gmt_path) {
-			$dbh->do("DELETE FROM GSEAAnalysis WHERE id=$id;");
+			$dbh->do("DELETE FROM GSEAAnalysis WHERE Id=$id;");
 			DCGenes::Utils::DB::Disconnect($dbh);
 			return $c->render_exception;
 		}
 		print $file $genes;
 		close $file;
 	} else {
-		$dbh->do("DELETE FROM GSEAAnalysis WHERE id=$id;");
+		$dbh->do("DELETE FROM GSEAAnalysis WHERE Id=$id;");
 		DCGenes::Utils::DB::Disconnect($dbh);
 		return $c->render(status => 400, json => { message => 'No file was selected and no genes provided.'});
 	}
@@ -98,35 +95,34 @@ sub queue {
 			my $rankingExt = ($rankingFile->filename =~ m/([^.]+)$/)[0];
 			my $error;
 			$error = 'The gene sets file uploaded can\'t be empty' unless $rankingFile->size;
-			$error = 'Only gmt, gmx and grp files are valid to submit gene sets.' unless $rankingExt eq 'rnk';
+			$error = 'Only rnk files are valid to submit gene rankings.' unless $rankingExt eq 'rnk';
 			unless (defined $error) {
-				$dbh->do("DELETE FROM GSEAAnalysis WHERE id=$id;");
+				$dbh->do("DELETE FROM GSEAAnalysis WHERE Id=$id;");
 				DCGenes::Utils::DB::Disconnect($dbh);
 				return $c->render(status => 400, json => { message => $error});
 			}
 			# Save to folder
-			my $custRnk_path .= $GSEA{INPUT_FOLDER}."/$id.$rankingExt";
+			my $custRnk_path .= $GSEA{INPUT_FOLDER}."/$id.rnk";
 			$rankingFile->move_to($custRnk_path);
 		} else {
-			$dbh->do("DELETE FROM GSEAAnalysis WHERE id=$id;");
+			$dbh->do("DELETE FROM GSEAAnalysis WHERE Id=$id;");
 			DCGenes::Utils::DB::Disconnect($dbh);
 			return $c->render(status => 400, json => { message => 'No custom score ranking was provided.'});
 		}
 	}
 
-	$dbh->do("UPDATE GSEAAnalysis SET input = \"$ext\" WHERE id = $id;");
+	$dbh->do("UPDATE GSEAAnalysis SET Input = \"$ext\" WHERE Id = $id;");
 	DCGenes::Utils::DB::Disconnect($dbh);
 
-	$c->app->log->debug("New job queued: $id");
 	return $c->render(json => { message => $id });
 }
 
-sub result {
+sub results {
 	my $c = shift;
 	my $id = $c->param('id');
 
 	my $dbh = DCGenes::Utils::DB::ConnectTo('DCGenes');
-	my $sth = $dbh->prepare('SELECT title, status, error FROM GSEAAnalysis WHERE id = ?;');
+	my $sth = $dbh->prepare('SELECT Title, Status, Error FROM GSEAAnalysis WHERE Id = ?;');
 	$sth->execute($id);
 	my @row = $sth->fetchrow_array();
 	unless (@row) {
@@ -159,46 +155,44 @@ sub result {
 				my $path = $c->param('fileName');
 
 				if ($path eq 'index.html') { # Main summary
-					if (not $c->req->url->path->trailing_slash) {
-						$c->redirect_to("$id/");
-					} else {
-						## Render results view
-						my ($setsSubmitted, $setsAnalyzed, $setDiscarted, $posTableFile, $negTableFile)
-							= getAnalysisMetadata("$result_dir/index.html");
+					return $c->redirect_to("$id/") if (not $c->req->url->path->trailing_slash);
 
-						# If only 1 set. Redirect to its result
-						if ($setsAnalyzed == 1) {
-							my $setName = getFirstSet("$result_dir/".($posTableFile || $negTableFile));
-							return $c->redirect_to("$setName");
-						}
+					## Render results view
+					my ($setsSubmitted, $setsAnalyzed, $setDiscarted, $posTableFile, $negTableFile)
+						= getAnalysisMetadata("$result_dir/index.html");
 
-						my ($posTable, $posSnapshot, $negTable, $negSnapshot);
-
-						if ($posTableFile) {
-							$posTable = processTable("$result_dir/$posTableFile");
-							$posSnapshot = processSnapshot("$result_dir/pos_snapshot.html");
-							$posTableFile =~ s/.html$/.xls/;
-						}
-
-						if ($negTableFile) {
-							$negTable = processTable("$result_dir/$negTableFile");
-							$negSnapshot = processSnapshot("$result_dir/neg_snapshot.html");
-							$negTableFile =~ s/.html$/.xls/;
-						}
-
-						return $c->render(template => 'enrichment/summary',
-							title => $title,
-							setsSubmitted => $setsSubmitted,
-							setsAnalyzed => $setsAnalyzed,
-							setDiscarted => $setDiscarted,
-							posEnrichedXls => $posTableFile,
-							posTable => $posTable,
-							posSnapshot => $posSnapshot,
-							negEnrichedXls => $negTableFile,
-							negTable => $negTable,
-							negSnapshot => $negSnapshot
-						);
+					# If only 1 set. Redirect to its result
+					if ($setsAnalyzed == 1) {
+						my $setName = getFirstSet("$result_dir/".($posTableFile || $negTableFile));
+						return $c->redirect_to("$setName");
 					}
+
+					my ($posTable, $posSnapshot, $negTable, $negSnapshot);
+
+					if ($posTableFile) {
+						$posTable = processTable("$result_dir/$posTableFile");
+						$posSnapshot = processSnapshot("$result_dir/pos_snapshot.html");
+						$posTableFile =~ s/.html$/.xls/;
+					}
+
+					if ($negTableFile) {
+						$negTable = processTable("$result_dir/$negTableFile");
+						$negSnapshot = processSnapshot("$result_dir/neg_snapshot.html");
+						$negTableFile =~ s/.html$/.xls/;
+					}
+
+					return $c->render(template => 'gsea/summary',
+						title => $title,
+						setsSubmitted => $setsSubmitted,
+						setsAnalyzed => $setsAnalyzed,
+						setDiscarted => $setDiscarted,
+						posEnrichedXls => $posTableFile,
+						posTable => $posTable,
+						posSnapshot => $posSnapshot,
+						negEnrichedXls => $negTableFile,
+						negTable => $negTable,
+						negSnapshot => $negSnapshot
+					);
 				} elsif ($path =~ /.html$/) { # Gene Set Summary
 					# This checks avoid trying to parse files that exists but shouldn't be shown
 					# beause they are part of the summary
@@ -217,7 +211,7 @@ sub result {
 						unless ($summaryTable);
 
 					$path =~  s/.html$/ /;
-					return $c->render(template => 'enrichment/set',
+					return $c->render(template => 'gsea/set',
 						title => $title,
 						isOnlySet => $setsAnalyzed == 1,
 						setName => $path,
@@ -227,15 +221,21 @@ sub result {
 						genesTable => $genesTable
 					);
 				} else { # Static files (images, CSVs, etc.)
-					my $staticPath = File::Spec->abs2rel("$result_dir/$path", $DCGenes::Utils::Paths::RootFolder.'/public');
+					my $staticPath = File::Spec->abs2rel("$result_dir/$path", $DCGenes::Utils::Paths::rootFolder.'/public');
 					return $c->reply->static($staticPath);
 				}
 			} elsif ($status eq 'Error') {
-				return $c->render(template => 'enrichment/error', 
+				return $c->render(template => 'shared/error', 
 					id => $id, header => $header, message => $message);
 			} else {
-				return $c->render(template => 'enrichment/wait',
-					id => $id, header => $header, message => $message);
+				return $c->render(template => 'shared/wait',
+					url => 'gsea', 
+					id => $id, 
+					header => $header,
+					message => $message,
+					customTitle => 'GSEA Analysis Not Ready',
+					polling => 30
+				);
 			}
 		}
 	);
@@ -252,16 +252,15 @@ sub  network {
 	my $sth;
 	my $sql;
 
-	$sth = $dbh->prepare("SELECT score, ontology, threshold FROM GSEAAnalysis WHERE id = ?;");
+	$sth = $dbh->prepare("SELECT Score, Ontology, Threshold FROM GSEAAnalysis WHERE Id = ?;");
 	$sth->execute($id);
-	my $score = 'EvoTol';
-	my $ontology = 'all';
-	my $threshold = 1;
-	if(my @temp = $sth->fetchrow_array) {
-		$score = $temp[0];
-		$ontology = $temp[1];
-		$threshold = $temp[2];
-	}
+
+	return $c->render_exception unless (my @temp = $sth->fetchrow_array);
+
+	my $score = $temp[0];
+	my $ontology = $temp[1];
+	my $threshold = $temp[2];
+
 	$sth->finish();
 
 	my (%networkData, $error) = DCGenes::Utils::Networks::GetFromGeneList(

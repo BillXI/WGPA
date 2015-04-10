@@ -1,4 +1,4 @@
-(function (document) { 
+var Fathmm = (function (window, document) { 
 	var epi4kSubstitutions ='ENSP00000283256 K1422E\nENSP00000352035 R581G\nENSP00000360608 Y668S\n' +
 		'ENSP00000307288 D363H\nENSP00000362014 G359A\nENSP00000346534 G214D\nENSP00000414232 T292I\n' +
 		'ENSP00000283256 R853Q\nENSP00000347733 R3728Q\nENSP00000354621 R115H\nENSP00000340930 L1054P\n' +
@@ -13,17 +13,28 @@
 		'ENSP00000303540 A1510E\nENSP00000278379 G82R\nENSP00000262493 N270H\nENSP00000362014 R237W\n' +
 		'ENSP00000229854 A304V\nENSP00000362014 T65N';
 
-	var formContainer = $('#form'),
-		resultsContainer = $('#results'),
-		submitButton = document.getElementById('submit_subs'),
-		algorithm = document.getElementById('Algorithm'),
-		inheritedOptions = $('#InheritedOptions'),
-		predThreshold = document.getElementById('PredThreshold');
+	var submitButton,
+		formContainer,
+		waitContainer,
+		resultsContainer,
+		algorithmSelector,
+		inheritedOptions,
+		predThreshold;
 
-	submitButton.addEventListener('click', submit);
+	function init(){
+		submitButton = document.getElementById('submit-button');
+		formContainer = document.getElementById('form-container');
+		waitContainer = document.getElementById('wait-container');
+		resultsContainer = document.getElementById('results-container');
+		algorithmSelector = document.getElementById('algorithm');
+		inheritedOptions = $('#InheritedOptions');
+		predThreshold = document.getElementById('pred-threshold');
 
-	document.getElementById('epi4k-subs').addEventListener('click', populateEpi4kSubstitutions);
-	$(algorithm).on('change', updateForm).trigger('change');
+		submitButton.addEventListener('click', submit);
+
+		document.getElementById('epi4k-subs').addEventListener('click', populateEpi4kSubstitutions);
+		$(algorithm).on('change', updateForm).trigger('change');
+	}
 
 	function populateEpi4kSubstitutions() {
 		$(this).closest('div').find('textarea').html(epi4kSubstitutions);
@@ -68,11 +79,11 @@
 			formData.append('Phenotype', document.getElementById('Phenotype').value);
 		}
 
-		formContainer.collapse('hide');
-		resultsContainer.collapse('show');
+		$(formContainer).collapse('hide');
+		$(waitContainer).collapse('show');
 
 		var xhr = new XMLHttpRequest();
-		xhr.open('post', '/substitutions');
+		xhr.open('post', '/fathmm');
 		xhr.onreadystatechange = callback;
 		xhr.send(formData);
 	}
@@ -86,10 +97,9 @@
 			} else {
 				var data = JSON.parse(this.responseText);
 				if(this.status === 200){
-					genes = data.genes;
-					renderResults(data);
-					$('#wait-container').collapse('hide');
-					$('#results-container').collapse('show');
+					initResults(data);
+					$(waitContainer).collapse('hide');
+					$(resultsContainer).collapse('show');
 				} else {
 					formContainer.collapse('show');
 					resultsContainer.collapse('hide');
@@ -100,69 +110,69 @@
 		}
 	}
 
-	function renderResults(data) {
-		var src = document.getElementById("genes_box_results");
-		src.innerHTML = '<h3>In your set of mutations there were '
-			+ data.metadata.hot_count 
-			+ ' out of ' 
-			+ data.metadata.all_count 
-			+ ' in the <i>hot zone</i></h3>';
+	var showNetwokButton,
+		networkContainer,
+		spinner,
+		network,
+		genes;
 
-		renderIntolerance(data.metadata.score, data.intolerance);
-		renderSubsTable(data.metadata.score, data.table);
-		renderScatter(data.metadata.score, data.scatter);
+	function initResults(data) {
+		showNetwokButton = document.getElementById('show-network');
+		networkContainer = document.getElementById('cy-container');
+		spinner = document.getElementsByClassName('spinnerContainer')[0];
+
+		showNetwokButton.addEventListener('click', showNetwork);
+
+		genes = data.bar.labels;
+
+		var scatter,
+			hotCount = 0,
+			totalCount = 0;
+		for (var i = data.scatter.length - 1; i >= 0; i--) {
+			var scatter = data.scatter[i];
+			if (scatter.name === 'hot') {
+				hotCount = hotCount + scatter.data.length;
+			}
+			totalCount = totalCount + scatter.data.length;
+		};
+		var src = document.getElementById('summary');
+		src.innerHTML = '<h3>In your set of mutations there were ' + hotCount 
+			+ ' out of ' + totalCount + ' in the <i>hot zone</i></h3>';
+
+		new BarChart('bars-chart', {
+			score: data.score,
+			data: data.bar
+		}).render();
+
+		renderSubsTable(data.score, data.table);
+
+		new ScatterChart(
+			'hotzone-scatter', 
+			{
+				score: data.score,
+				data: data.scatter,
+			},
+			{
+				xAxis: {
+					title: 'FATHMM Z-Score',
+					min: -10,
+					max: 10
+				}
+			}
+		).render();
+
 		renderDomTable(data);
 	}
 
-	function renderIntolerance(score, data) {
-		new Highcharts.Chart({
-			chart: {
-				type: 'column',
-				renderTo: 'IntoleranceChart'
-			},
-	        title: {
-	            text: score + ' intolerance'
-	        },
-	        subtitle: {
-	            text: 'Percentile'
-	        },
-	        xAxis: {
-	            categories: data.labels
-	        },
-	        yAxis: {
-	            min: 0,
-	            max: 100,
-	            tickInterval: 10,
-	            title: {
-	                text: 'Percentile'
-	            }
-	        },
-	        plotOptions: {
-	            column: {
-	                pointPadding: 00,
-	                borderWidth: 0
-	            }
-	        },
-	        series: [{
-	        	name: 'Genes',
-	            data: data.vals
-	        }]
-	    });
-	    // Horrible hack necessary to display the chart properly
-		setTimeout(function () {
-			$(window).trigger('resize');
-		}, 0);
-	}
-
 	function renderSubsTable(score, data){		
-		document.getElementById('ScoreHeader').innerHTML = score + 'Percentile';
+		document.getElementById('score-header').innerHTML = score;
 
 		var tbdy=document.createElement('tbody'),
 			tr,
 			td;
 		
 		for(var i = 0; i < data.length; i++) {
-			var mutation = data[i][2];
+			var mutation = data[i][3];
 			var address = 'http://supfam3.cs.bris.ac.uk/oates/cgi-bin/archpic.cgi?genome=hs&amp;seqids='
 				+ data[i][1]
 				+ '&amp;mark_ruler='
@@ -175,6 +185,9 @@
 			for(var j = 0; j < data[i].length; j++) {
 				td = document.createElement('td');
 				td.appendChild(document.createTextNode(data[i][j]));
+				if (j === 4) {
+					td.style.color = data[i][j] === 'DAMAGING' ? 'red' : 'green';
+				}
 				tr.appendChild(td);
 			}
 
@@ -190,12 +203,11 @@
 			tbdy.appendChild(tr);	
 		}
 
-		var tbl = document.getElementById('subs_table_out');
-		tbl.removeChild(tbl.lastChild);
+		var tbl = document.getElementById('results-table');
+		tbl.removeChild(tbl.getElementsByTagName('tbody')[0]);
 		tbl.appendChild(tbdy);
 
-		var tableSorter1 = new TSorter;
-		tableSorter1.init('subs_table_out');
+		tsorter.create('results-table');
 	}
 
 	function renderDomTable(table_data){
@@ -213,108 +225,12 @@
 			tbdy.appendChild(tr);			
 		}
 
-		var tbl  = document.getElementById('dom_table_out');
-		tbl.removeChild(tbl.lastChild);
+		var tbl  = document.getElementById('dom-table');
+		tbl.removeChild(tbl.getElementsByTagName('tbody')[0]);
 		tbl.appendChild(tbdy);
 
-		var tableSorter1 = new TSorter;
-		tableSorter1.init('dom_table_out');
+		tsorter.create('dom-table');
 	}
-
-	function renderScatter(score, data) {
-		new Highcharts.Chart({
-			chart: {
-				type: 'scatter',
-				zoomType: 'xy',
-				renderTo: 'hotzone'
-			},
-			colors: [
-				'#2f7ed8', 
-				'#0d233a', 
-				'#8bbc21', 
-				'#910000', 
-				'#1aadce', 
-				'#492970',
-				'#f28f43', 
-				'#77a1e5', 
-				'#c42525', 
-				'#a6c96a'
-			],
-			title: {
-				text: 'Are the mutatations in the hotzone?'
-			},
-			xAxis: {
-				title: {
-					enabled: true,
-					text: 'FATHMM Z-Score' 
-				},
-				startOnTick: true,
-				endOnTick: true,
-				showLastLabel: true,
-				min: -10, 
-				max: 10
-			},
-			yAxis: {
-				min: 0, 
-				max: 100,
-				title: {
-					text: score + ' Percentile'
-				}
-			},
-			legend: {
-				layout: 'vertical',
-				align: 'left',
-				verticalAlign: 'bottom',
-				floating: true,
-				backgroundColor: '#FFFFFF',
-				borderWidth: 1
-			},
-			plotOptions: {
-				scatter: {
-					marker: {
-						radius: 3,
-						states: {
-							hover: {
-								enabled: true,
-								lineColor: 'rgb(100,100,100)'
-							}
-						}
-					},
-					states: {
-						hover: {
-							marker: {
-								enabled: false
-							}
-						}
-					},
-					tooltip: {
-						headerFormat: '<b>{series.name}</b><br>',
-						pointFormat: '{point.x} cm, {point.y} kg'
-					}
-				}
-			},
-			tooltip:{
-				formatter:function(){
-					return this.point.info;
-				}
-			},
-			credits: {
-				enabled: false
-			},
-			series: data
-		});
-		// Horrible hack necessary to display the chart properly
-		setTimeout(function () {
-			$(window).trigger('resize');
-		}, 0);
-	}
-
-	var showNetwokButton = document.getElementById('show-network'),
-		networkContainer = document.getElementById('cy-container'),
-		spinner = document.getElementsByClassName('spinnerContainer')[0],
-		genes,
-		network;
-	showNetwokButton.addEventListener('click', submitNetwork);
 
 	function submitNetwork() {
 		if (networkContainer.style.display === 'block') {
@@ -360,6 +276,10 @@
 	}
 
 	function showNetwork () {
+		if (!network) {
+			submitNetwork();
+			return;
+		}
 		networkContainer.style.display = 'block';
 		showNetwokButton.innerText = 'Hide interaction network';
 	}
@@ -368,4 +288,10 @@
 		networkContainer.style.display = 'none';
 		showNetwokButton.innerText = 'Show interaction network';
 	}
-})(document);
+
+	return {
+		Init: init
+	};
+})(window, document);
+
+Fathmm.Init();

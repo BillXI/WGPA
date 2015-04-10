@@ -23,11 +23,12 @@ sub GetFromGeneList {
 	foreach my $gene (@genes) {
 		if (my $perc = $ranking{$gene}) {
 			my $color = $perc * 0.85 + 5;
-			push(@nodes, { data => { id => $gene, name => $gene, backgroundColor => "hsl(204, 100%, $color%)" } });
+			push(@nodes, { data => { id => $gene, name => $gene, percentile => $perc, backgroundColor => "hsl(204, 100%, $color%)" } });
 			$nodeIntolerance{$gene} = $perc; 
 		} else {
-			push(@nodes, { data => { id => $gene, name => $gene, backgroundColor => 'red' } });
+			push(@nodes, { data => { id => $gene, name => $gene, percentile => 'Unkown',  backgroundColor => 'red' } });
 		}
+		$nodeDegree{$gene} = 0;
 		$geneList .= "'$gene',";
 	}
 
@@ -41,11 +42,7 @@ sub GetFromGeneList {
 	while (my @edge = $sth->fetchrow_array) {
 		push(@edges, {data => {source => $edge[0], target => $edge[1]}});
 		foreach my $gene (@edge) {
-			if (exists $nodeDegree{$gene}) {
-				$nodeDegree{$gene} = $nodeDegree{$gene} + 1;
-			} else {
-				$nodeDegree{$gene} = 1;
-			}
+			$nodeDegree{$gene} = $nodeDegree{$gene} + 1;
 		}
 	}
 
@@ -85,7 +82,7 @@ sub GetFromNetwork {
 		foreach my $gene (@genes) {
 			if (my $perc = $ranking{$gene}) {
 				my $color = $perc * 0.85 + 5;
-				push(@nodes, { data => { id => $gene, name => $gene, backgroundColor => "hsl(204, 100%, $color%)" } });
+				push(@nodes, { data => { id => $gene, name => $gene, percentile => $perc, backgroundColor => "hsl(204, 100%, $color%)" } });
 				if (exists $nodeDegree{$gene}) {
 					$nodeDegree{$gene} = $nodeDegree{$gene} + 1;
 				} else {
@@ -93,7 +90,7 @@ sub GetFromNetwork {
 					$nodeIntolerance{$gene} = $perc; 
 				}
 			} else {
-				push(@nodes, { data => { id => $gene, name => $gene, backgroundColor => 'red' } });
+				push(@nodes, { data => { id => $gene, name => $gene, percentile => 'Unkown', backgroundColor => 'red' } });
 			}
 		}
 		push(@edges, { data => { source => $genes[0], target => $genes[1] } });

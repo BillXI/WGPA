@@ -1,4 +1,4 @@
-var Enrichment = (function (window, document) {
+var GSEA = (function (window, document) {
 	var epi4kGenes = 'KCNB1\nKMT2B\nGRIN1\nNCOR2\nSCN8A\nRANGAP1\nGABRA1\nSCN2A\nCDC25B\nTRRAP\nNFASC\n' +
 		'SMURF1\nFLNC\nATP2B4\nPRKX\nGNAO1\nPLA1A\nAKAP6\nTAF1\nCDKL5\nETS1\nTTN\nSTXBP1\nCAMK4\nGABRB3\n' +
 		'PLXNA1\nKCNQ2\nMAST1\nCSNK1E\nITGAM\nXPO1\nDIA\nTHOC2\nNEDD4L\nMAPK8IP1\nSMG9\nDNM1\nNR1H2\n' +
@@ -39,7 +39,7 @@ var Enrichment = (function (window, document) {
 		}
 
 		var runGSEAClient = new XMLHttpRequest();
-		runGSEAClient.open('post', '/enrichment');
+		runGSEAClient.open('post', '/gsea');
 		runGSEAClient.onreadystatechange = callback;
 		runGSEAClient.send(formData);
 	}
@@ -51,7 +51,7 @@ var Enrichment = (function (window, document) {
 			} else {
 				var data = JSON.parse(this.responseText);
 				if(this.status === 200) {
-					window.location.href = '/enrichment/' + data.message + '/';
+					window.location.href = '/gsea/' + data.message + '/';
 				} else {
 					Alert({text: data.message, type: 'danger', layout: 'top-center'});
 				}
@@ -65,4 +65,4 @@ var Enrichment = (function (window, document) {
 	};
 })(window, document);
 
-Enrichment.Init();
+GSEA.Init();

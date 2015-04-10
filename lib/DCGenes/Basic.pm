@@ -1,5 +1,5 @@
-package DCGenes::Networks;
-use DCGenes::Utils;
+package DCGenes::Basic;
+use DCGenes::Utils::Networks;
 use Mojo::Base 'Mojolicious::Controller';
 
 sub index {
@@ -64,7 +64,27 @@ sub submit {
 	return $c->render(status => 400, json => { message => $error})
 		if defined $error;
 
-	return $c->render(json => \%networkData);
+
+	my @nodes = @{$networkData{Network}{Nodes}};
+	my @labels;
+	my @vals;
+
+		foreach my $node (sort { $a->{data}->{percentile} <=> $b->{data}->{percentile} }  @nodes) {
+			if ($node->{data}->{percentile} ne 'Unkown') {
+				push(@labels, $node->{data}->{name});
+				push(@vals, 0 + $node->{data}->{percentile});
+			}
+		}
+
+
+	return $c->render(json => { 
+		Score => $score,
+		Network => \%networkData,
+		bar => {
+			labels => \@labels,
+			vals => \@vals
+		}
+	});
 }
 
 1;

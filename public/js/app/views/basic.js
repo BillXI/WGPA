@@ -1,4 +1,4 @@
-var Networks = (function (window, document) {
+var Basic = (function (window, document) {
 	var epi4kGenes = 'KCNB1\nKMT2B\nGRIN1\nNCOR2\nSCN8A\nRANGAP1\nGABRA1\nSCN2A\nCDC25B\nTRRAP\nNFASC\n' +
 		'SMURF1\nFLNC\nATP2B4\nPRKX\nGNAO1\nPLA1A\nAKAP6\nTAF1\nCDKL5\nETS1\nTTN\nSTXBP1\nCAMK4\nGABRB3\n' +
 		'PLXNA1\nKCNQ2\nMAST1\nCSNK1E\nITGAM\nXPO1\nDIA\nTHOC2\nNEDD4L\nMAPK8IP1\nSMG9\nDNM1\nNR1H2\n' +
@@ -12,16 +12,14 @@ var Networks = (function (window, document) {
 
 	var submitButton,
 		formContainer,
-		networkContainer,
-		cy,
-		network;
+		resultsContainer;
 
 	function init(){
 		submitButton = document.getElementById('submit-button');
 		formContainer  = document.getElementById('form-container');
-		networkContainer = document.getElementById('cy-container');
-		submitButton.onclick = onSubmit;
+		resultsContainer = document.getElementById('results-container');
 
+		submitButton.addEventListener('click', submit);
 
 		document.getElementById('epi4k').addEventListener('click', populateEpi4kGenes);
 		document.getElementById('populatebox').addEventListener('click', populateBox);
@@ -35,7 +33,7 @@ var Networks = (function (window, document) {
 		$(this).closest('div').find('textarea').html(cardiacMuscleContractionNetwork);
 	}
 
-	function onSubmit(e) {
+	function submit(e) {
 		e.preventDefault();
 		submitButton.setAttribute('disabled', '');
 
@@ -54,7 +52,7 @@ var Networks = (function (window, document) {
 		}
 
 		var xhr = new XMLHttpRequest();
-		xhr.open('post', '/networks');
+		xhr.open('post', '/basic');
 		xhr.onreadystatechange = callback;
 		xhr.send(formData);
 	}
@@ -66,8 +64,10 @@ var Networks = (function (window, document) {
 			} else {
 				var data = JSON.parse(this.responseText);
 				if(this.status === 200) {
-					if (showNetwork(data)) {
-						showResults();
+					if (data) {
+						initResults(data);
+						formContainer.style.display = 'none';
+						$(resultsContainer).collapse('show');
 					}
 				} else {
 					Alert({text: data.message, type: 'danger', layout: 'top-center'});
@@ -77,25 +77,75 @@ var Networks = (function (window, document) {
 		}
 	}
 
-	function showNetwork(model) {
-		if (model) {
-			network = new Network('#cy-container', model);
-			network.render();
-			return true;
+	var showNetwokButton,
+		networkContainer,
+		network,
+		networkModel;
+
+	function initResults(data) {
+		showNetwokButton = document.getElementById('show-network');
+		networkContainer = document.getElementById('cy-container');
+
+		showNetwokButton.addEventListener('click', showNetwork);
+
+		networkModel = data.Network;
+
+		new BarChart('bars-chart', {
+			score: data.Score,
+			data: data.bar
+		}).render();
+		
+		renderRanking(data.Score, data.Network.Network.Nodes);
+	}
+
+	function renderRanking(score, genes) {
+		document.getElementById('score-header').innerHTML = score;
+
+		var gene,
+			tbdy=document.createElement('tbody'),
+			tr,
+			td;
+		
+		for(var i = 0; i < genes.length; i++) {
+			gene = genes[i].data;
+			
+			tr = document.createElement('tr');
+
+			td = document.createElement('td');
+			td.appendChild(document.createTextNode(gene.name));
+			tr.appendChild(td);
+
+			td = document.createElement('td');
+			td.appendChild(document.createTextNode(gene.percentile));
+			tr.appendChild(td);
+
+			tbdy.appendChild(tr);
+		}
+
+		var tbl = document.getElementById('results-table');
+		tbl.removeChild(tbl.getElementsByTagName('tbody')[0]);
+		tbl.appendChild(tbdy);
+
+		tsorter.create('results-table');
+	}
+
+	function showNetwork() {
+		if (networkContainer.style.display === 'block') {
+			hideNetwork();
+		} else {
+			if (!network) {
+				network = new Network('#cy-container', networkModel);
+				network.render();
+			}
+			networkContainer.style.display = 'block';
+			showNetwokButton.innerText = 'Hide interaction network';
 		}
 	}
 
-	function showForm() {
-		$(networkContainer).collapse('hide');
-		formContainer.style.display =  'block';
+	function hideNetwork (){
+		networkContainer.style.display = 'none';
+		showNetwokButton.innerText = 'Show interaction network';
 	}
-
-	function showResults() {
-		formContainer.style.display = 'none';
-		$(networkContainer).collapse('show');
-	}
-
-	//TODO add options to the network layout
 
 	return {
 		Init: init
@@ -103,6 +153,4 @@ var Networks = (function (window, document) {
 
 })(window, document);
 
-Networks.Init();
-
-//cy.layout() on resize
+Basic.Init();

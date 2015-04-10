@@ -1,0 +1,160 @@
+% title 'DC Genes - GSEA Analysis Results - '.title;
+% content_for css => begin
+	<link type="text/css" href="/css/app/views/gsearesults.css" rel="stylesheet"/>
+% end
+
+<div class="container">
+	<div class="row">
+		<div class="col-lg-12 text-center">
+			<h2>
+				Gene Set Enrichment Analysis Results <%= ' - '.$title if $title %>
+			</h2>
+		</div>
+	</div>
+	<div id="GSEAResults" class="row">
+		<div class="col-lg-12">
+			<ul class="nav nav-tabs" role="tablist">
+				<li id="GlobalTab" class="active"><a href="#global" role="tab" data-toggle="tab">Global statistics</a></li>
+				<li id="PositiveTab"><a href="#positive" role="tab" data-toggle="tab">Enriched in tolerant genes</a></li>
+				<li id="NegativeTab"><a href="#negative" role="tab" data-toggle="tab">Enriched in intolerant genes</a></li>
+			</ul>
+			<div class="tab-content text-center">
+				<div id="global" class="tab-pane active">
+					<div class="content">
+						<div class="container">
+							<div class="row">
+								<div class="col-lg-12">
+									<h2>Gene sets</h2>
+									<table id="ResultsSummary">
+										<thead>
+											<tr>
+												<th>Submited</th>
+												<th>Analized</th>
+												<th>Discarted</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td><%= $setsSubmitted %></td>
+												<td><%= $setsAnalyzed %></td>
+												<td><%= $setDiscarted %></td>
+											</tr>
+										</tbody>
+									</table>
+									<p>All gene sets with less that than 15 nodes or more than 500 are discarted</p>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-lg-6">
+									<figure>
+										<img src="pvalues_vs_nes_plot.png" alt="p-values vs nes plot">
+										<figcaption>Plot of p-values versus normalized enrichment scored. (Useful to grasp the number of enriched gene sets that are significant)</figcaption>
+									</figure>
+								</div>
+								<div class="col-lg-6">
+									<figure>
+										<img src="global_es_histogram.png" alt="global es histogram">
+										<figcaption>Histogram of enrichment scores across gene sets. (Useful to grasp the number of enriched gene sets)</figcaption>
+									</figure>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="positive" class="tab-pane">
+					<div class="content vmargin25">
+						<div class="container">
+							<div class="row">
+								<div class="col-lg-12">
+									% if ($posEnrichedXls) {
+									<div id="positive-acc">
+										<div class="panel">
+											<div id="positive-table" class=" collapse in">
+												<a href="#positive-snapshot" data-toggle="collapse" data-parent="#positive-acc">See snapshot of enrichment results</a>
+												<table class="vmargin25">
+													<thead>
+														<tr>
+															<th>Gene Set</th>
+															<th>SIZE</th>
+															<th>ES</th>
+															<th>NES</th>
+															<th>NOM p-val</th>
+															<th>FDR q-val</th>
+															<th>FWER p-val</th>
+															<th>RANK AT MAX</th>
+															<th>LEADING EDGE</th>
+														</tr>
+													</thead>
+													<tbody>
+														%== $posTable
+													</tbody>
+												</table>
+												<a href="<%= $posEnrichedXls %>">Download as xls document (Excel)</a>
+											</div>
+										</div>
+										<div class="panel">
+											<div id="positive-snapshot" class="collapse">
+												<a href="#positive-table" data-toggle="collapse" data-parent="#positive-acc">See enrichment results</a>
+												<div class="vmargin25"><%== $posSnapshot %></div>
+											</div>
+										</div>
+									</div>
+									% } else {
+									<p>None of the gene sets were enriched in tolerant genes</p>
+									% }
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="negative" class="tab-pane">
+					<div class="content vmargin25">
+						<div class="container">
+							<div class="row">
+								<div class="col-lg-12">
+									% if ($negEnrichedXls) {
+									<div id="negative-acc">
+										<div class="panel">
+											<div id="negative-table" class="collapse in">
+												<a href="#negative-snapshot" data-toggle="collapse" data-parent="#negative-acc">See snapshot of enrichment results</a>
+												<table class="vmargin25">
+													<thead>
+														<tr>
+															<th>Gene Set</th>
+															<th>SIZE</th>
+															<th>ES</th>
+															<th>NES</th>
+															<th>NOM p-val</th>
+															<th>FDR q-val</th>
+															<th>FWER p-val</th>
+															<th>RANK AT MAX</th>
+															<th>LEADING EDGE</th>
+														</tr>
+													</thead>
+													<tbody>
+														%== $negTable
+													</tbody>
+												</table>
+												<a href="<%= $negEnrichedXls %>">Download as xls document (Excel)</a>
+											</div>
+										</div>
+										<div class="panel">
+											<div id="negative-snapshot" class="collapse">
+												<a href="#negative-table" data-toggle="collapse" data-parent="#negative-acc">See enrichment results</a>
+												<div class="vmargin25"><%== $negSnapshot %></div>
+											</div>
+										</div>
+									% } else {
+									<p>None of the gene sets were enriched in intolerant genes</p>
+									% }
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

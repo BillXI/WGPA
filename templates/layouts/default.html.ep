@@ -25,14 +25,17 @@
 				</div>
 				<div class="navbar-collapse collapse" id="navbar-main">
 					<ul class="nav navbar-nav">
-						<li <% if ($tab eq 'enrichment') { %> class="active" <% } %>>
-							<a href="/enrichment">Enrichment</a>
+						<li <% if ($tab eq 'basic') { %> class="active" <% } %>>
+							<a href="/basic">Basic</a>
 						</li>
-						<li <% if ($tab eq 'substitutions') { %> class="active" <% } %>>
-							<a href="/substitutions">Substitutions</a>
+						<li <% if ($tab eq 'gsea') { %> class="active" <% } %>>
+							<a href="/gsea">GSEA</a>
 						</li>
-						<li <% if ($tab eq 'networks') { %> class="active" <% } %>>
-							<a href="/networks">Networks</a>
+						<li <% if ($tab eq 'fathmm') { %> class="active" <% } %>>
+							<a href="/fathmm">fathmm</a>
+						</li>
+						<li <% if ($tab eq 'polyphen') { %> class="active" <% } %>>
+							<a href="/polyphen">PolyPhen2</a>
 						</li>
 						<li <% if ($tab eq 'contact') { %> class="active" <% } %>>
 							<a href="/contact">Contact</a>

@@ -12,7 +12,6 @@ var ScoreForm = (function (window, document) {
 					evoTol = evoTol + '<option value="' + ontology + '">' + ontology + '</option>';
 				};
 				evotol = evoTol + '</select>' +
-				'<p class="help-block">eg: Central nervous system</p>' +
 			'</div>' +
 		'</div>' +
 
@@ -24,7 +23,6 @@ var ScoreForm = (function (window, document) {
 					'<option value="10">10</option>' +
 					'<option value="100">100</option>' +
 				'</select>' +
-				'<p class="help-block">eg: 100TPM</p>' +
 			'</div>' +
 		'</div>'
 		return evotol;
@@ -39,7 +37,6 @@ var ScoreForm = (function (window, document) {
 					'<option value="01">01</option>' +
 					'<option value="1">1</option>' +
 				'</select>' +
-				'<p class="help-block">eg: 100TPM</p>' +
 			'</div>' +
 		'</div>';
 
@@ -50,7 +47,7 @@ var ScoreForm = (function (window, document) {
 			'<label class="control-label col-sm-5" for="threshold">Ranking:</label>' +
 			'<div class="col-sm-7">' +
 				'<input type="file" id="RankingFile" name="ranking-file" class="form-control">' +
-				'<p class="help-block">eg: file containing the whole genome ranked</p>' +
+				'<p class="help-block">file containing the whole genome ranked</p>' +
 			'</div>' +
 		'</div>'
 	;
@@ -98,18 +95,6 @@ var ScoreForm = (function (window, document) {
 				throw 'Invalid score selected.'
 		}
 		initializeSelect2();
-	}
-
-	function callback() {
-		if(this.readyState === 4){
-			var data = JSON.parse(this.responseText);
-			if(this.status === 200){
-				window.location.href = '/enrichment/' + data.message + '/';
-			} else {
-				Alert({text: data.message, type: 'danger', layout: 'top-center'});
-			}
-			runGSEAButton.removeAttribute('disabled');
-		}
 	}
 
 	function getFormData() {

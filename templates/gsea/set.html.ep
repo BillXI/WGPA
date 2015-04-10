@@ -1,4 +1,4 @@
-% title 'DC Genes - Enrichment Analysis - '.$setName;
+% title 'DC Genes - GSEA Analysis - '.$setName;
 % content_for css => begin
 	<link type="text/css" href="/css/app/views/gsearesults.css" rel="stylesheet"/>
 % end
@@ -8,7 +8,7 @@
 	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
 	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
 	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
-	<script type="text/javascript" src="/js/app/views/set.js" ></script>
+	<script type="text/javascript" src="/js/app/views/gsea/set.js" ></script>
 % end
 
 % content_for modals => begin
@@ -79,7 +79,6 @@
 			</figure>
 		</div>
 	</div>
-
 	<div class="row vmargin25">
 		<div class="col-lg-4 col-lg-push-4 col-lg-pul-4">
 			<button id="show-network" class="btn btn-primary btn-block">Show interaction network</button>
@@ -92,9 +91,7 @@
 			</div>
 		</div>
 	</div>
-
 	<div id="cy-container" class="row" style="display: none;"></div>
-
 	<div class="row vmargin25">
 		<div class="col-lg-12 text-center">
 			<table>

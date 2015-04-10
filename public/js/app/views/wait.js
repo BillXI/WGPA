@@ -1,23 +1,27 @@
 Wait = (function (window, document) {
-	var analysisId,
+	var analysisURL,
+		analysisId,
+		pollingTime,
 		header,
 		message,
-		bookMarkButtons,
+		bookMarkButton,
 		xhr;
 
-	function init(id) {
-		analysisId = +id;
+	function init(url, id, polling) {
+		analysisURL = url;
+		analysisId = id;
+		pollingTime = 1000 * (polling || 30);
 		header = document.getElementById('Header');
 		message = document.getElementById('Message');
-		bookMarkButtons = document.getElementById('AddBookMark');
-		bookMarkButtons.addEventListener('click', addBookMark);
+		bookMarkButton = document.getElementById('AddBookMark');
+		bookMarkButton.addEventListener('click', addBookMark);
 
 		checkStatus();
 	}
 
 	function checkStatus () {	
 		xhr = new XMLHttpRequest();
-		xhr.open('get', '/enrichment/' + analysisId, true);
+		xhr.open('get', '/' + analysisURL + '/' + analysisId, true);
 		xhr.setRequestHeader('Accept', 'application/json');
 		xhr.onreadystatechange = updateUI;
 		xhr.send();
@@ -38,7 +42,7 @@ Wait = (function (window, document) {
 						default:
 							header.innerHTML = data.header;
 							message.innerHTML = data.message;
-							window.setTimeout(checkStatus, 30000);
+							window.setTimeout(checkStatus, pollingTime);
 							break;
 					}
 				}
