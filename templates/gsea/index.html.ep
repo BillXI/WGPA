@@ -1,7 +1,7 @@
-% title 'DC Genes - GSEA Analysis';
+% title 'WGPA - GSEA Analysis';
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/app/modules/scoreForm.js" ></script>
-	<script type="text/javascript" src="/js/app/views/gsea/index.js" ></script>
+	<script type="text/javascript" src="/app/js/modules/scoreForm.js" ></script>
+	<script type="text/javascript" src="/app/js/views/gsea/index.js" ></script>
 % end
 
 % content_for modals => begin
@@ -88,13 +88,13 @@
 <div class="container">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2>Upload your gene set to see the evolutionary intolerance enrichment</h2>
+			<h2>GSEA of Pathogenicity</h2>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-lg-6">
-			<legend>Run a  GSEA on a list of gene names</legend>
-			<p>Enter one or more gene sets, choose a cellular context and expression threshold then press submit to investigate their evolutionary intolerance.</p>
+			<legend>Enter one or more gene sets to run a GSEA analysis to check whether there is an enrichment for genes which are predicted to be pathogenic.</legend>
+			<p>Step 1: Enter (or upload) your gene-set(s) using the GSEA format:</p>
 				
 			<form class="form-horizontal" role="form">
 				<div class="form-group">
@@ -119,7 +119,7 @@
 						<p class="help-block">eg: Epilepsy (Patient 3)</p>
 					</div>
 				</div>
-
+				<p>Step 2: Select which pathogenic prediction measure you would like to use:</p>
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
 					<div class="col-sm-7">
@@ -140,11 +140,11 @@
 			</form>
 		</div>
 		<div class="col-lg-6">
-			<legend>Information</legend>
+			<legend>User Guide</legend>
 
-			<p>Gene Set Enrichment Analysis (GSEA) is a computational method that determines whether an <i>a priori</i> defined set of genes shows statistically significant, concordant differences between two biological states (e.g. phenotypes). The Gene Set Enrichment Analysis <a href="http://www.pnas.org/content/102/43/15545.full" target="_blank">PNAS paper</a> fully describes the algorithm. We use the implementation develop by <a href="http://www.broadinstitute.org/" target="_blank">Broad Institute of MIT and Harvard.</a></p>
+			<p>Gene Set Enrichment Analysis (GSEA) is a method developed at the broad institure which "determines whether an <i>a priori</i> defined set of genes shows statistically significant, concordant differences between two biological states (e.g. phenotypes)". The Gene Set Enrichment Analysis <a href="http://www.pnas.org/content/102/43/15545.full" target="_blank">original paper</a> fully describes the algorithm. We use the implementation developed by <a href="http://www.broadinstitute.org/" target="_blank">Broad Institute of MIT and Harvard.</a></p>
 
-			<h4>Valid inputs</h4>
+			<h4>Step 1: Entering (or uploading) gene-set(s) using any of accepted GSEA format:</h4>
 			<p>
 				Click on them for more info
 				<ul>
@@ -155,8 +155,26 @@
 				</ul>
 			</p>
 
-			<p>Sets with less than 10 genes or more than 500 genes will be ignored by the analysis</p>
-			<p>At the moment we only support gene names as gene identifiers.</p>
+			<p>Sets with less than 10 genes or more than 500 genes will be ignored by the analysis and only Entrez gene symbols can be used as gene identifiers.</p>
+			
+			<h4>Step 2: Selecting which intolerance measure you should use:</h4>
+			<p>You can choose from four options, <a href="http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003709" target="_blank">RVIS</a>,
+			<a href="http://nar.oxfordjournals.org/content/43/5/e33" target="_blank">EvoTol</a>, <a href="http://www.nature.com/ng/journal/v46/n9/abs/ng.3050.html" target="_blank">Gene Constraint Score</a>
+			or you own custom ranking. Depending on which method you select some paramters are also required:
+			</p>
+			<h5> EvoTol </h5>
+			<ul>
+				<li>Cell specificity: If you want to limit the intolerance ranks to only those genes expressed in a given tissue/cell type.</li>
+				<li>Intolerance expression cutoff: The expression level in tags per million do you consider as being the minimum value for being 'expressed'.</li>
+			</ul>
+			<h5> RVIS </h5>
+			<ul>
+				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
+			</ul>
+			<h5> Custom Ranking </h5>
+			<ul>
+				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>
+			</ul>
 		</div>
 	</div>
 </div>

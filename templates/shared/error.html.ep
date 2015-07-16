@@ -1,11 +1,11 @@
-% title 'DC Genes - Enrichment Analysis Error';
+% title "WGPA - $customTitle";
 
 <div class="container">
 	<div class="row">
 		<div class="col-lg-12 text-center">
 			<h2 id="Header"><%= $header %></h2>
 			<p id="Message"><%= $message %></p>
-			<img src="/img/error.png" alt="Error Icon">
+			<img src="/app/img/error.png" alt="Error Icon">
 		</div>
 	</div>
 </div>

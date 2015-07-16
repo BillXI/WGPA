@@ -1,19 +1,19 @@
-% title 'DC Genes - PolyPhen-2 Analysis';
+% title 'WGPA - PolyPhen-2 Analysis';
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/app/modules/scoreForm.js" ></script>
-	<script type="text/javascript" src="/js/app/views/polyphen/index.js" ></script>
+	<script type="text/javascript" src="/app/js/modules/scoreForm.js" ></script>
+	<script type="text/javascript" src="/app/js/views/polyphen/index.js" ></script>
 % end
 
 <div class="container">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2>Upload your own De-novo mutation containing substitutions</h2>
+			<h2>WGPA + PolyPhen-2</h2>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-lg-6">
-			<legend>Run Polyphen-2 on a set of substitutions</legend>
-			<p>Enter a set of substitutions and press submit to investigate their evolutionary intolerance.</p>
+			<legend>Look for mutations that are in the hot-zone</legend>
+			<p>Step 1: Enter (or upload) your gene, gene-set or network using any of accepted PolyPhen-2 formats:</p>
 				
 			<form class="form-horizontal" role="form">
 				<div class="form-group">
@@ -38,10 +38,10 @@
 						<p class="help-block">Protein sequence in fasta format with a definition line: <code>> PROTEIN_IDENTIFIER</code></p>
 					</div>
 				</div>
-
+				<p>Step 2: Choose the settings that you require for PolyPhen-2:</p>
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="classifier-model">Classifier Model:</label>
-					<div class="col-sm-7">				
+					<div class="col-sm-7">        
 						<select id="classifier-model" name="classifier-model" class="form-control">
 							<option selected="selected" value="HumDiv">HumDiv</option>
 							<option value="HumVar">HumVar</option>
@@ -51,7 +51,7 @@
 
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="genome-assembly">Genome Assembly:</label>
-					<div class="col-sm-7">				
+					<div class="col-sm-7">        
 						<select id="genome-assembly" name="genome-assembly" class="form-control">
 							<option selected="selected" value="hg19">GRCh37/hg19</option>
 							<option value="hg18">NCBI36/hg18</option>
@@ -61,7 +61,7 @@
 
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="transcripts">Transcripts:</label>
-					<div class="col-sm-7">				
+					<div class="col-sm-7">        
 						<select id="transcripts" name="transcripts" class="form-control">
 							<option value="0">All</option>
 							<option selected="selected" value="1">Canonical</option>
@@ -72,7 +72,7 @@
 
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="annotations">Annotations:</label>
-					<div class="col-sm-7">				
+					<div class="col-sm-7">        
 						<select id="annotations" name="annotations" class="form-control">
 							<option value="">All</option>
 							<option value="c">Coding</option>
@@ -96,7 +96,7 @@
 						<p class="help-block">the percentile to consider</p>
 					</div>
 				</div>
-
+				<p>Step 3: Select which pathogenic prediction measure you would like to use:</p>
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
 					<div class="col-sm-7">
@@ -117,16 +117,51 @@
 			</form>
 		</div>
 		<div class="col-lg-6">
-			<legend>Information</legend>
+			<legend>User Guide</legend>
+			<p>This page allows you to identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging according to PolyPhen-2 and which are in a gene that is predicted to be pathogenic according to RVIS, EvoTol or the gene constraint score.</p>
+			<p>PolyPhen-2 uses sequence- and structure-based information to predict the effect of variants using a Bayesian approach. This <a href="http://genetics.bwh.harvard.edu/pph2/dokuwiki/_media/nmeth0410-248.pdf" target="_blank">paper</a> fully describes the approach and the difference with the previous PolyPhen version. The following are some extracts from the PolyPhen-2 guide that will help you select the correct settings to use:</p>
 
-			<p>PolyPhen-2 uses sequence- and structure-based information to predict the effect of variants using a Bayesian approach. This <a href="http://genetics.bwh.harvard.edu/pph2/dokuwiki/_media/nmeth0410-248.pdf" target="_blank">paper</a> fully describes the approach and the difference with the previous PolyPhen version.</p>
-
-			<h4>Valid inputs</h4>
+			<h4>Step 1: Entering (or uploading) your gene, gene-set or network using any of accepted PolyPhen-2 formats:</h4>
+			<p> Mutations for PolyPhen-2 can be manually entered or uploaded in a text file. Each mutations should be on a seperate line and need to be entered in one of the following formats:<p>
 			<p>
-				PolyPhen-2 uses sequence- and structure-based information to predict the effect of variants using a Bayesian approach. 
-				Click on them for more info
-
+				<code>&lt;UniprotID&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
+				<code>&lt;RefSeq protein ID&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
+				<code>&lt;dbSNP id&gt;</code><br/>
+				<code>&lt;Locus&gt; &lt;WT/Mutant&gt;</code><br/>
 			</p>
+			<h4>Step 2: Choosing the settings that you require for PolyPhen-2:</h4>
+			<p> There are a number of paramaters that can altered for PolyPhen-2, these are summarised as follows:</p>
+			<ul>
+				<li>Classifier Model: 
+					<ul>
+						<li><b>HumDiv</b> is Mendelian disease variants vs. divergence from close mammalian homologs of human proteins (>=95% sequence identity).</li>
+						<li> <b>HumVar</b> is all human variants associated with some disease (except cancer mutations) or loss of activity/function vs. common (minor allele frequency >1%) human polymorphism with no reported association with a disease of other effect.</li>
+					</ul>
+				</li>
+				<li>Genome Assembly: This is the genome version that your mutations refer to</li>
+				<li>Transcripts: Decide which transcript type you want to use for your analysis</li>
+				<li>Annotations: Decide which annotations you would like PolyPhen-2 to return</li>
+				<li>Analysis Title: Provide a name for the analysis that you are going to submit</li>
+				<li>Prediction Cutoff: Choose the value at which PolyPhen-2 will classify something as damaging, a value of ~0.05 is a sensible default.</li>
+			</ul>
+			<h4>Step 2: Selecting which intolerance measure you should use:</h4>
+			<p>You can choose from four options, <a href="http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003709" target="_blank">RVIS</a>,
+			<a href="http://nar.oxfordjournals.org/content/43/5/e33" target="_blank">EvoTol</a>, <a href="http://www.nature.com/ng/journal/v46/n9/abs/ng.3050.html" target="_blank">Gene Constraint Score</a>
+			or you own custom ranking. These will be combined with the mutation level score to identify those mutations that both predicted to be damaging but also which are
+			in genes that are intolerant to mutation. For full details on each of the scoring methods please read the relevant publication but some technique specific settings are described below:</p>
+			<h5> EvoTol </h5>
+			<ul>
+				<li>Cell specificity: If you want to limit the intolerance ranks to only those genes expressed in a given tissue/cell type.</li>
+				<li>Intolerance expression cutoff: The expression level in tags per million do you consider as being the minimum value for being 'expressed'.</li>
+			</ul>
+			<h5> RVIS </h5>
+			<ul>
+				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
+			</ul>
+			<h5> Custom Ranking </h5>
+			<ul>
+				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>
+			</ul>
 		</div>
 	</div>
 </div>

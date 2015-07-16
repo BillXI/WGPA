@@ -25,34 +25,36 @@ public class GSEARunner {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        Logger logger = Logger.getLogger(GSEARunner.class.getName());  
         // Folder variables
+        URI WGPA_FOLDER;
         URI GSEA_FOLDER;
+        URI GSEA_DATA_FOLDER;
         try {
             GSEA_FOLDER = new URI (System.getProperty("user.dir"))
                     .relativize(new URI(GSEARunner.class.getProtectionDomain()
-                            .getCodeSource().getLocation().getPath()))
-                    .resolve("./");
+                    .getCodeSource().getLocation().getPath()));
+            WGPA_FOLDER = GSEA_FOLDER.resolve("../../");
+            GSEA_DATA_FOLDER = WGPA_FOLDER.resolve("data/GSEA/");
         } catch (URISyntaxException ex) {
-            Logger.getLogger(GSEARunner.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, "Can't resolve local path", ex);
             System.exit(-1);
             return;
         }
-        String STUDY_LABEL = "EvoTol_Analysis";
-    	String INPUT_FOLDER = GSEA_FOLDER.resolve("Inputs").toString();
-    	String RESULTS_FOLDER = GSEA_FOLDER.resolve("Results").toString();
-    	String DATA_FOLDER = GSEA_FOLDER.resolve("Data").toString();
-        String LOG_FILE = GSEA_FOLDER.resolve("../../log/gsea.log").toString();
+        String STUDY_LABEL = "WGPA_Analysis";
+    String INPUT_FOLDER = GSEA_DATA_FOLDER.resolve("Inputs/").toString();
+    String RANKINGS_FOLDER = GSEA_DATA_FOLDER.resolve("Rankings/").toString();
+    String RESULTS_FOLDER = GSEA_DATA_FOLDER.resolve("Results/").toString();
         
-        // Logger configuration
-        Logger logger = Logger.getLogger(GSEARunner.class.getName());   
+        // Logger configuration 
         try {  
-            FileHandler fh = new FileHandler(LOG_FILE);  
+            FileHandler fh = new FileHandler(WGPA_FOLDER.resolve("log/gsea.log").toString());  
             logger.addHandler(fh);
             SimpleFormatter formatter = new SimpleFormatter();  
             fh.setFormatter(formatter);  
             logger.info("GSEA Runner Started");
         } catch (SecurityException | IOException ex) {  
-            Logger.getLogger(GSEARunner.class.getName()).log(Level.SEVERE, null, ex);
+           logger.log(Level.SEVERE, "Can't start logger", ex);
             System.exit(-1);
         }  
         
@@ -66,7 +68,7 @@ public class GSEARunner {
             String PASSWORD = null;
             int SLEEPTIME = 0;
             try {
-                input = new FileInputStream(GSEA_FOLDER + "/config.properties");
+                input = new FileInputStream(GSEA_FOLDER.resolve("config.properties").toString());
 
                 prop.load(input);
 
@@ -76,14 +78,14 @@ public class GSEARunner {
                 SLEEPTIME = Integer.parseInt(prop.getProperty("sleeptime"));
 
             } catch (IOException ex) {
-                Logger.getLogger(GSEARunner.class.getName()).log(Level.SEVERE, "Can't read the properties file.", ex);
+                logger.log(Level.SEVERE, "Can't read the properties file.", ex);
                 System.exit(-1);
             } finally {
                 if (input != null) {
                     try {
                         input.close();
                     } catch (IOException e) {
-                        Logger.getLogger(GSEARunner.class.getName()).log(Level.SEVERE, "Can't close the properties file.", e);
+                        logger.log(Level.SEVERE, "Can't close the properties file.", e);
                         System.exit(-1);
                     }
                 }
@@ -93,7 +95,8 @@ public class GSEARunner {
             try {
                 DataBase.testConnection();
             } catch (SQLException | InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-                logger.info("GSEA runner: Can't connect to the database.");
+                logger.log(Level.SEVERE, "Can't connect to the database.", ex);
+                System.exit(-1);
             }
 
             System.setProperty(Constants.MAKE_REPORT_DIR_KEY, "false");
@@ -117,7 +120,7 @@ public class GSEARunner {
                         extension = rs.getString("input");
                     }
                 } catch (SQLException ex) {
-                    logger.log(Level.SEVERE, null, ex);
+                    logger.log(Level.SEVERE, "SQL Exception getting next analysis from queue.", ex);
                 }
 
                 //try Getting from db
@@ -129,13 +132,13 @@ public class GSEARunner {
                         String ranking;
                         switch (score != null ? score : "") {
                             case "EvoTol":
-                                ranking = DATA_FOLDER + "/" + score + "/" + threshold + "/" + ontology + ".rnk";
+                                ranking = RANKINGS_FOLDER + "/" + score + "/" + threshold + "/" + ontology + ".rnk";
                                 break;
                             case "RVIS":
-                                ranking = DATA_FOLDER + "/" + score + "/" + threshold + ".rnk";
+                                ranking = RANKINGS_FOLDER + "/" + score + "/" + threshold + ".rnk";
                                 break;
                             case "Constraint":
-                                ranking = DATA_FOLDER + "/" + score + "/" + threshold + ".rnk";
+                                ranking = RANKINGS_FOLDER + "/" + score + "/" + threshold + ".rnk";
                                 break;
                             case "Custom":
                                 ranking = INPUT_FOLDER + "/" + id + ".rnk";
@@ -163,7 +166,7 @@ public class GSEARunner {
                         DataBase.execute("UPDATE GSEAAnalysis "
                             + "SET status = \"Error\", error = \"" + t.getMessage()+ "\" "
                             + "WHERE id = " + id + ";");
-                        logger.log(Level.INFO, "GSEA runner: Analysis with ID = {0} failed", id);
+                        logger.log(Level.INFO, "GSEA runner: Analysis with ID = " +  id + " failed", t);
                     }
                     finally {
                         DataBase.closeConnection();

@@ -1,29 +1,29 @@
-% title 'DC Genes - Basic Analysis';
+% title 'WGPA - Basic Analysis';
 % content_for css => begin
-	<link type="text/css" href="/css/vendors/TSorter.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/tsorter/TSorter.css" rel="stylesheet"/>
 % end
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/vendors/TSorter.js"></script>
-	<script type="text/javascript" src="/js/vendors/springy.js" ></script>
-	<script type="text/javascript" src="/js/vendors/cytoscape.min.js" ></script>
-	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
-	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
-	<script type="text/javascript" src="/js/app/modules/barschart.js" ></script>
-	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
-	<script type="text/javascript" src="/js/app/modules/scoreForm.js" ></script>
-	<script type="text/javascript" src="/js/app/views/basic.js" ></script>
+	<script type="text/javascript" src="/vendor/tsorter/TSorter.js"></script>
+	<script type="text/javascript" src="/vendor/springy/springy.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/vendor/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="/vendor/highcharts/exporting.js"></script>
+	<script type="text/javascript" src="/app/js/modules/barschart.js" ></script>
+	<script type="text/javascript" src="/app/js/modules/network.js" ></script>
+	<script type="text/javascript" src="/app/js/modules/scoreForm.js" ></script>
+	<script type="text/javascript" src="/app/js/views/basic.js" ></script>
 % end
 
-<div id="form-container" class="container">
+<div id="form-container" class="container collapse in">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2>Upload your gene set or network to visualize its evolutionary intolerance</h2>
+			<h2>Pathogenicty Analysis</h2>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-lg-6">
-			<legend>See the evolutionary intolerance of a gene set or network</legend>
-			<p>Enter a gene set or network, choose a cellular context and press submit to investigate its evolutionary intolerance.</p>
+			<legend>Determine the predicted pathogencity of a gene, gene-set or network.</legend>
+			<p>Step 1: Enter (or upload) your gene, gene-set or network using Entrez gene symbols:</p>
 				
 			<form class="form-horizontal" role="form">
 				<div class="form-group">
@@ -40,7 +40,13 @@
 						<p class="help-block">where each line is a gene or a pair of genes</p>
 					</div>
 				</div>
-
+				<p>Step 2: Select which intolerance measure you would like to use:</p>
+				<div class="form-group">
+					<label class="control-label col-sm-5" for="all">or see them all:</label>
+					<div class="col-sm-7">
+						<input name="all" id="all" type="checkbox">
+					</div>
+				</div>
 				<div class="form-group">
 					<label class="control-label col-sm-5" for="score">Intolerance score:</label>
 					<div class="col-sm-7">
@@ -61,14 +67,13 @@
 			</form>
 		</div>
 		<div class="col-lg-6">
-			<legend>Information</legend>
+			<legend>User Guide</legend>
 
-			<p>Rank your genes according to their intolerance to mutation.</p>
+			<p>You can use this page to rank your genes according to their intolerance to mutation. Because genes do not operate alone but are subject to a complex regulatory network we also provide the ability to view the predicted pathogenicity for many genes at once in the context of a network. This can help to understand how different mutations may play a role in disease. You can either enter you own network or information from STRING will be used.</p>
 
-			<p>Genes do not operate alone but are subject to a complex regulatory network and as such viewing the intolerance to mutation for many genes within the same network can help to understand how mutations may play a role in disease.</p>
-
-			<h4>Visualize existing network</h4>
-			<p>Passing a list of genes will render the network getting the relationships between them from the STRING database.</p>
+			<h4>Step 1: Entering your gene, gene-set or network.</h4>
+			<p>You can either enter you data into the text box provided or upload a file with gene information encoded as follows</p>
+			<p><b> For an gene or gene-set:</b> Enter a list of genes, one per line,</p>
 			
 			<p>
 				<code>&lt;gene1&gt;</code><br/>
@@ -77,8 +82,7 @@
 				<code>&lt;gene4&gt;</code>
 			</p>
 
-			<h4>Visualize existing network</h4>
-			<p>Passing a list of gene pairs will render the network as defined. Each line represents a link between two genes. For example, the first line represents an edge between the genes <code>&lt;gene1&gt;</code> and <code>&lt;gene2&gt;</code>.</p>
+			<p><b> For an existing network:</b> Enter each network link on a seperate line such that each line represents a link between two genes. For example, the first line represents an edge between the genes <code>&lt;gene1&gt;</code> and <code>&lt;gene2&gt;</code>.</p>
 			
 			<p>
 				<code>&lt;gene1&gt; &lt;gene2&gt;</code><br/>
@@ -87,7 +91,25 @@
 				<code>&lt;gene1&gt; &lt;gene4&gt;</code>
 			</p>
 
-			<p>At the moment we only support gene names as gene identifiers.</p>
+			<p>At the moment we only support <b>Entrez gene symbols</b> as gene identifiers.</p>
+			<h4>Step 2: Selecting which intolerance measure you should use:</h4>
+			<p>You can choose from four options, <a href="http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003709" target="_blank">RVIS</a>,
+			<a href="http://nar.oxfordjournals.org/content/43/5/e33" target="_blank">EvoTol</a>, <a href="http://www.nature.com/ng/journal/v46/n9/abs/ng.3050.html" target="_blank">Gene Constraint Score</a>
+			or you own custom ranking. These will be combined with the mutation level score to identify those mutations that both predicted to be damaging but also which are
+			in genes that are intolerant to mutation. For full details on each of the scoring methods please read the relevant publication but some technique specific settings are described below:</p>
+			<h5> EvoTol </h5>
+			<ul>
+				<li>Cell specificity: If you want to limit the intolerance ranks to only those genes expressed in a given tissue/cell type.</li>
+				<li>Intolerance expression cutoff: The expression level in tags per million do you consider as being the minimum value for being 'expressed'.</li>
+			</ul>
+			<h5> RVIS </h5>
+			<ul>
+				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
+			</ul>
+			<h5> Custom Ranking </h5>
+			<ul>
+				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>
+			</ul> 
 		</div>
 	</div>
 </div>
@@ -95,7 +117,7 @@
 	<div class="row">
 		<div class="col-lg-12 text-center">
 			<h2>
-				Basic Analysis Results
+				Gene Pathogenicity Analysis Results
 			</h2>
 		</div>
 	</div>
@@ -106,11 +128,23 @@
 	</div>
 	<div class="row">
 		<div class="col-lg-12">
+			<p>Below are the percentiles for the genes that you submitted, the lower the percentile the more pathogenic the gene is predicted to be. A gene that has a percentile of <i>Unknown</i> means that there was no score associated to that gene for the given approach. This can occur for a number of reasons, please refer to the original publications for further details. You can sort by either the Gene Symbol or Percentile by clicking on the column header. Below the table is the option to show these genes on an interaction network.</p>
 			<table id="results-table" class="table">
 				<thead>
 					<tr>
 						<th>Gene</th>
-						<th><span id="score-header">EvoTol</span> Percentile</th>
+						<th data-tsorter="numeric"><span id="score-header">EvoTol</span> Percentile</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<table id="all-results-table" class="table">
+				<thead>
+					<tr>
+						<th>Gene</th>
+						<th data-tsorter="numeric">EvoTol Percentile</th>
+						<th data-tsorter="numeric">RVIS Percentile</th>
+						<th data-tsorter="numeric">Gene Constraint Percentile</th>
 					</tr>
 				</thead>
 				<tbody></tbody>

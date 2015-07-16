@@ -1,14 +1,14 @@
-% title 'DC Genes - GSEA Analysis - '.$setName;
+% title 'WGPA - GSEA Analysis - '.$setName;
 % content_for css => begin
-	<link type="text/css" href="/css/app/views/gsearesults.css" rel="stylesheet"/>
+	<link type="text/css" href="/app/css/views/gsearesults.css" rel="stylesheet"/>
 % end
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/vendors/springy.js" ></script>
-	<script type="text/javascript" src="/js/vendors/cytoscape.min.js" ></script>
-	<script type="text/javascript" src="/js/vendors/highcharts.js"></script>
-	<script type="text/javascript" src="/js/vendors/exporting.js"></script>
-	<script type="text/javascript" src="/js/app/modules/network.js" ></script>
-	<script type="text/javascript" src="/js/app/views/gsea/set.js" ></script>
+	<script type="text/javascript" src="/vendor/springy/springy.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/vendor/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="/vendor/highcharts/exporting.js"></script>
+	<script type="text/javascript" src="/app/js/modules/network.js" ></script>
+	<script type="text/javascript" src="/app/js/views/gsea/set.js" ></script>
 % end
 
 % content_for modals => begin
@@ -54,6 +54,7 @@
 				% }
 				<%= $setName %>
 			</h2>
+			<p>This page shows whether there is a an enrichment for predicted pathogenic genes within your geneset. Some of the GSEA results and some of the text explaining the plots are taken from <a href="http://www.broadinstitute.org/gsea/index.jsp" target="_blank">GSEA developed by the Broad Institute</a>.<p>
 		</div>
 	</div>
 	<div class="row vmargin25">

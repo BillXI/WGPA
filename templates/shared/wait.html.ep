@@ -1,7 +1,7 @@
-% title "DC Genes - $customTitle";
+% title "WGPA - $customTitle";
 
 % content_for scripts => begin
-	<script type="text/javascript" src="/js/app/views/wait.js" ></script>
+	<script type="text/javascript" src="/app/js/views/wait.js" ></script>
 	<script type="text/javascript">
 		Wait.Init('<%= $url %>', <%= $id %>, <%= $polling %>);
 	</script>

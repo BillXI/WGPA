@@ -1,6 +1,6 @@
-% title 'DC Genes - GSEA Analysis Results - '.title;
+% title 'WGPA - GSEA Analysis Results - '.title;
 % content_for css => begin
-	<link type="text/css" href="/css/app/views/gsearesults.css" rel="stylesheet"/>
+	<link type="text/css" href="/app/css/views/gsearesults.css" rel="stylesheet"/>
 % end
 
 <div class="container">

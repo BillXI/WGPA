@@ -1,55 +1,60 @@
-% title 'Disease-Causing Genes';
+% title 'WGPA - Home';
 % content_for css => begin
-	<link type="text/css" href="/css/app/modules/coin.css" rel="stylesheet"/>
+	<link type="text/css" href="/app/css/modules/coin.css" rel="stylesheet"/>
 % end
 
 <div class="jumbotron">
 	<div class="container">
 		<div class="text-center">
-			<h1>Disease-Causing Genes</h1>
+			<h1>Web-based Gene Pathogenicity Analysis (WGPA)</h1>
 		</div>
-		<p>It is currently established that rare <em>de novo</em> mutations cause a number of diseases and there are several approaches to find a set of prospective disease-causing genes e.g. case-parent trio studies. This sets can be studied and analized using some statistical tool. However, for diseases with extensive locus heterogeneity, such as autism spectrum disorders (ASDs), the signal from de novo mutations is distributed across many genes, making it difficult to point the disease-causing mutations.</p>
-		<p>DC Genes combine the most recent scores developed to asses the intolerance of a gene to mutations (RVIS, EvoTol, Gene Constraints, ...) whith a set of widely used analysis (GSEA, fatmhh, polyphen, gene networks, ...) in order to distinguish the genes containing disease-relevant mutations from genes containing irrelevant mutations.</p>
+		<p>WGPA combines the most recent scores developed to asses the intolerance of a gene to mutations (<a href="http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003709" target="_blank">RVIS</a>, <a href="http://nar.oxfordjournals.org/content/early/2014/12/29/nar.gku1322" target="_blank">EvoTol</a> and <a href="http://www.nature.com/ng/journal/v46/n9/abs/ng.3050.html" target="_blank">Gene Constraint score</a>) with both mutation scoring tools (<a href="http://www.ncbi.nlm.nih.gov/pubmed/23033316" target="_blank">fathmm</a> and <a href="http://www.ncbi.nlm.nih.gov/pubmed/23315928" target="_blank"> polyphen</a>) whilst allowing for integration of sets of genes (via GSEA) or networks of genes (using, for example, <a href="http://nar.oxfordjournals.org/content/43/D1/D447" target="_blank">STRING</a>) in order to distinguish the genes/gene sets containing disease-relevant mutations from the genes containing irrelevant mutations.</p>
 	</div>
 </div>
 
 <div class="container">
-	<div class="row text-justify">
-		<div class="col-lg-3">
+	<div class="row text-center">
+		<h2> Analysis using gene level pathogenicity infomation</h2>
+		<div class="col-lg-6">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/basic"><img src="/img/networks-icon.png" width="120px" class="coin"></a>
+					<a href="/basic"><img src="/app/img/networks-icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/basic"><h1>Basic</h1></a>
+				<a href="/basic"><h1>Gene Pathogenicity Analysis</h1></a>
 			</div>
-			<p>Enter your own gene set or network to visualize its evolutionary intolerance.</p>
+			<p>Enter your own gene, gene set or network to determine the level of intolerance.</p>
 		</div>
-		<div class="col-lg-3">
+		<div class="col-lg-6">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/gsea"><img src="/img/enrichment_icon.png" width="120px" class="coin"></a>
+					<a href="/gsea"><img src="/app/img/enrichment_icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/gsea"><h1>GSEA</h1></a>
+				<a href="/gsea"><h1>GSEA of Pathogenicity</h1></a>
 			</div>
-			<p>Enter one or more gene sets, choose a cellular context and expression threshold and run a GSEA analysis to analyze the evolutionary intolerance enrichment.</p>
+			<p>Enter one or more gene sets to run a GSEA analysis to check whether there is an enrichment for genes which are predicted to be pathogenic.</p>
 		</div>
-		<div class="col-lg-3">
+	</div>
+	<hr>
+	<div class="row text-center">
+		<h2>Analysis combining gene and mutation pathogenicity level infomation</h2>
+		<div class="col-lg-6">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/fathmm"><img src="/img/substitutions-icon.png" width="120px" class="coin"></a>
+					<a href="/fathmm"><img src="/app/img/substitutions-icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/fathmm"><h1>fathmm</h1></a>
+				<a href="/fathmm"><h1>WGPA + FATHMM</h1></a>
 			</div>
-			<p>Identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging and which are in a gene that is intolerant to mutation calculating their FATHMM and intolerance scores.</p>
+			<p>Identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging according to FATHMM and which are in a gene that is predicted to be pathogenic according to RVIS, EvoTol or the gene constraint score.</p>
 		</div>
-		<div class="col-lg-3">
+		<div class="col-lg-6">
 			<div class="text-center">
 				<div class="coin-container">
-					<a href="/polyphen"><img src="/img/substitutions-icon.png" width="120px" class="coin"></a>
+					<a href="/polyphen"><img src="/app/img/substitutions-icon.png" width="120px" class="coin"></a>
 				</div>
-				<a href="/polyphen"><h1>PolyPhen-2</h1></a>
+				<a href="/polyphen"><h1>WGPA + PolyPhen-2</h1></a>
+
 			</div>
-			<p>Identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging and which are in a gene that is intolerant to mutation calculating their PolyPhen-2 and intolerance scores.</p>
+			 <p>Identify the mutations that lie in the hotzone of mutation, i.e. those that are predicted damaging according to PolyPhen-2 and which are in a gene that is predicted to be pathogenic according to RVIS, EvoTol or the gene constraint score.</p>
 		</div>
 	</div>
 </div>

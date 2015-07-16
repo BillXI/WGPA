@@ -1,9 +1,9 @@
-% title 'DC Genes - 404 - Page Not Found';
+% title 'WGPA - 404 - Page Not Found';
 
 <div class="container">
 	<div class="row">
 		<div class="col-lg-12 text-center">
-			<img src="/img/404.png" alt="404" class="vmargin25">
+			<img src="/app/img/404.png" alt="404" class="vmargin25">
 			<h2>The page requested was not found</h2>
 		</div>
 	</div>

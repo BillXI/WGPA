@@ -1,2 +1,10 @@
 Main-Class: gsearunner.GSEARunner
-Class-Path: lib
+Class-Path: lib/acme.jar lib/algorithms.jar lib/braju.jar lib/commons-
+ io-2.4.jar lib/commons-math3-3.2.jar lib/dom4j-full.jar lib/ecs.jar l
+ ib/edtftpj.jar lib/forms-1.0.7.jar lib/foxtrot.jar lib/jai_codec.jar 
+ lib/jai_core.jar lib/jakarta-regexp-1.4.jar lib/jama.jar lib/jcommon-
+ 1.0.6.jar lib/jfreechart-1.0.2.jar lib/jide-action.jar lib/jide-commo
+ n.jar lib/jide-components.jar lib/jide-dialogs.jar lib/jide-dock.jar 
+ lib/jide-grids.jar lib/junit.jar lib/jxl.jar lib/log4j-1.2.11.jar lib
+ /looks-2.0.4.jar lib/maven-artifact-2.0.9.jar lib/swingfx.jar lib/tro
+ ve1.1b5.jar lib/mysql-connector-java-5.1.23-bin.jar
