@@ -44,7 +44,7 @@ sub RVIS {
 	$rnk_path .= '/'.$threshold.'.rnk';
 
 	unless (-e $rnk_path) {
-		$sth = $dbh->prepare('SELECT Gene_Name, '.$dbh->quote_identifier("ALL_$threshold_perc").' FROM RVIS;');
+		$sth = $dbh->prepare('SELECT Gene_Name, '.$dbh->quote_identifier('ALL_'.$threshold.'_perc').' FROM RVIS;');
 		$sth->execute();
 		open my $FILE, '>'.$rnk_path;
 		while (my @temp = $sth->fetchrow_array) {

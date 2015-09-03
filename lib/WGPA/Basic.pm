@@ -1,6 +1,11 @@
 package WGPA::Basic;
+use WGPA::Utils::DB;
+use WGPA::Utils::NameConversion;
 use WGPA::Utils::Networks;
+use WGPA::Utils::Paths;
 use Mojo::Base 'Mojolicious::Controller';
+
+my $tmpFolder = $WGPA::Utils::Paths::fathmmFolder;
 
 sub index {
 	my $c = shift;
@@ -13,7 +18,7 @@ sub submit {
 	return $c->render(status => 400, json => { message => 'File is too big.' })
 		if $c->req->is_limit_exceeded;
 
-	my $netwokFile = $c->req->upload('File');
+	my $networkFile = $c->req->upload('File');
 	my $network = $c->param('Network');
 	
 	my $all = $c->param('All');
@@ -21,48 +26,91 @@ sub submit {
 	my $ontology = $c->param('Ontology');
 	my $threshold = $c->param('Threshold');
 	my $rankingFile = $c->req->upload('RankingFile');
+	if (defined $rankingFile and not $rankingFile->asset->is_file ) {
+		my $file = Mojo::Asset::File->new(path => $tmpFolder.int(rand(10000000000)).'.txt');
+		$file->add_chunk( $rankingFile->slurp );
+		$rankingFile->asset($file);
+	}
 
-	if (defined($netwokFile)) {
+	if (defined($networkFile)) {
 		return $c->render(status => 400, json => { message => 'The network file uploaded can\'t be empty' })
-			unless $netwokFile->size;
-		$network = $netwokFile->slurp;
+			unless $networkFile->size;
+		$network = $networkFile->slurp;
 	} elsif (!defined($network)) {
 		return $c->render(status => 400, json => { message => 'No file was selected and no genes provided' });
 	}
 
 	return getAllData($c, $network) if $all eq 'true';
 
-	my @lines = split(/\n/, $network);
+	my @lines = split(/\r\n|\n/, $network);
+	my %inputMap;
+	my %inputMapReverse;
 	my %networkData;
 	my $error;
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 	if (0+split(/\s+/, $lines[0]) == 1){
 		# List of genes
 		my @genes;
 		foreach my $line (@lines) {
-			# Retarded loop necessary for the ranking hash to work
-			push @genes, split(/\s/, $line);
+			next if($line=~/^\s*$/);
+			my $gene;
+			if (exists $inputMapReverse{$line}) {
+				$gene = $inputMapReverse{$line};
+			} else {
+				$gene = WGPA::Utils::NameConversion::Any2Symbol($line, $dbh);
+				$inputMapReverse{$line} = $gene;
+				$inputMap{$gene} = $line;
+				push @genes, $gene;
+			}
 		}
 		(%networkData, $error) = WGPA::Utils::Networks::GetFromGeneList(
 			\@genes,
 			$score,
 			$ontology,
 			$threshold,
-			defined $rankingFile ? $rankingFile->asset->path : undef
+			defined $rankingFile ? $rankingFile->asset->path : undef,
+			\%inputMap,
+			$dbh
 		);
 	}else {
 		# List of pairs of genes
 		my @edges;
 		foreach my $line (@lines) {
-			push @edges, [split(/\s/, $line)];
+			next if($line=~/^\s*$/);
+			my @edgeNodes = split(/\s/, $line);
+			my @edgeNodesSymbols= ();
+
+			if (0 + @edgeNodes != 2) {
+				WGPA::Utils::DB::Disconnect($dbh);
+				return $c->render(status => 400, json => { message => 'Invalid input format.' });
+			}
+
+			foreach my $node (@edgeNodes) {
+				my $gene;
+				if (exists $inputMapReverse{$node}) {
+					$gene = $inputMapReverse{$node};
+				} else {
+					$gene = WGPA::Utils::NameConversion::Any2Symbol($node, $dbh);
+					$inputMapReverse{$node} = $gene;
+					$inputMap{$gene} = $node;
+				}
+				push @edgeNodesSymbols, $gene;
+			}
+
+			push @edges, [@edgeNodesSymbols];
 		}
 		(%networkData, $error) = WGPA::Utils::Networks::GetFromNetwork(
 			\@edges,
 			$score,
 			$ontology,
 			$threshold,
-			defined $rankingFile ? $rankingFile->asset->path : undef
+			defined $rankingFile ? $rankingFile->asset->path : undef,
+			\%inputMap,
+			$dbh
 		);
 	}
+
+	WGPA::Utils::DB::Disconnect($dbh);
 
 	return $c->render(status => 400, json => { message => $error})
 		if defined $error;
@@ -79,7 +127,6 @@ sub submit {
 		}
 	}
 
-
 	return $c->render(json => { 
 		Score => $score,
 		Network => \%networkData,
@@ -93,22 +140,40 @@ sub submit {
 sub getAllData {
 	my $c = shift;
 	my $network = shift;
-	my $netwokFile = shift;
+	my $networkFile = shift;
 
-	my @lines = split(/\n/, $network);
+	my @lines = split(/\r\n|\n/, $network);
 	my @genes;
 
 	my %evotol;
 	my %rvis;
 	my %constraint;
 	my $error;
+	my %inputMap;
+	my %inputMapReverse;
+
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 
 	foreach my $line (@lines) {
-		# Retarded loop necessary for the ranking hash to work
-		push @genes, split(/\s/, $line);
-	}
+		next if($line=~/^\s*$/);
+		my @edgeNodes = split(/\s/, $line);
 
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+		if (0 + @edgeNodes > 2) {
+			return $c->render(status => 400, json => { message => 'Invalid input format.' });
+		}
+
+		foreach my $node (@edgeNodes) {
+			my $gene;
+			if (exists $inputMapReverse{$node}) {
+				$gene = $inputMapReverse{$node};
+			} else {
+				$gene = WGPA::Utils::NameConversion::Any2Symbol($node, $dbh);
+				$inputMapReverse{$node} = $gene;
+				$inputMap{$gene} = $node;
+				push @genes, $gene;
+			}
+		}
+	}
 
 	(%evotol, $error) = WGPA::Utils::getGenePercentiles('EvoTol', 'all', '1', undef, $dbh);
 	return (undef, $error) if defined $error;
@@ -124,10 +189,11 @@ sub getAllData {
 	my @result;
 	foreach my $gene (@genes) {
 		push @result, {
+			input => $inputMap{$gene},
 			name => $gene,
-			EvoTol => $evotol{$gene} || 'Unkown',
-			RVIS => $rvis{$gene} || 'Unkown',
-			Constraint => $constraint{$gene} || 'Unkown'
+			EvoTol => $evotol{$gene} || 'Unknown',
+			RVIS => $rvis{$gene} || 'Unknown',
+			Constraint => $constraint{$gene} || 'Unknown'
 		};
 	}
 

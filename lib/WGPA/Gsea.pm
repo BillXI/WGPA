@@ -1,13 +1,16 @@
 package WGPA::Gsea;
 use WGPA::Utils;
 use WGPA::Utils::DB;
-use WGPA::Utils::Paths;
+use WGPA::Utils::GseaFileConversion;
 use WGPA::Utils::Networks;
+use WGPA::Utils::Paths;
 use WGPA::Utils::Score2File;
 use Mojo::Base 'Mojolicious::Controller';
 use File::Spec;
+use File::Temp qw(tempfile);
 
 my %GSEA =  %WGPA::Utils::Paths::GSEA;
+my $tmpFolder = $WGPA::Utils::Paths::fathmmFolder;
 
 sub index {
 	my $c = shift;
@@ -30,13 +33,18 @@ sub submit {
 	my $ontology = $c->param('Ontology');
 	my $threshold = $c->param('Threshold');
 	my $rankingFile = $c->req->upload('RankingFile');
+	if (defined $rankingFile and not $rankingFile->asset->is_file ) {
+		my $file = Mojo::Asset::File->new(path => $tmpFolder.int(rand(10000000000)).'.txt');
+		$file->add_chunk( $rankingFile->slurp );
+		$rankingFile->asset($file);
+	}
 
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 	
 	my $rnk_path;
 	if ($score eq 'EvoTol') {
 		$rnk_path = WGPA::Utils::Score2File::EvoTol($ontology, $threshold, $dbh);
-	} elsif ($score eq 'RVIS') { 
+	} elsif ($score eq 'RVIS') {
 		$rnk_path = WGPA::Utils::Score2File::RVIS($threshold, $dbh);
 	} elsif ($score eq 'Constraint') {
 		$rnk_path = WGPA::Utils::Score2File::GeneConstraint($dbh);
@@ -52,48 +60,50 @@ sub submit {
 
 	return $c->render_exception unless $id;
 
+	my $error;
 	my $ext = 'grp';
 	if (defined $genesFile) {
 		# Extension
 		$ext = ($genesFile->filename =~ m/([^.]+)$/)[0];
 		my %valid_ext = map {$_ => 1} qw(gmt gmx grp wgcna);
-		my $error;
 		$error = 'The gene sets file uploaded can\'t be empty' unless $genesFile->size;
-		$error = 'Only gmt, gmx, grp and wgcna files are valid to submit gene sets.' unless $valid_ext{$ext};
-		unless (defined $error) {
-			$dbh->do('DELETE FROM GSEAAnalysis WHERE Id = ?;', undef, $id);
-			WGPA::Utils::DB::Disconnect($dbh);
-			return $c->render(status => 400, json => { message => $error});
-		}
 		# Save to folder
-		my $gmt_path .= $GSEA{INPUT_FOLDER}."/$id.$ext";
-		if ($ext eq 'wgcna') {
-			WGPA::Utils::saveWGCNAFile($genesFile->asset->path, $gmt_path);
-		} else {
-			$genesFile->move_to($gmt_path);
+		unless (defined $error) {
+			unless ( $genesFile->asset->is_file ) {
+				my $file = Mojo::Asset::File->new(path => '/var/tmp/wgpa'.int(rand(10000000000)).".txt");
+				$file->add_chunk( $genesFile->slurp );
+				$genesFile->asset($file);
+			}
+			my $gmt_path .= $GSEA{INPUT_FOLDER}."/$id.$ext";
+			if ($ext eq 'grp') {
+				$error = WGPA::Utils::GseaFileConversion::saveGRPFile($genesFile->asset->path, $gmt_path, $dbh);
+			} elsif ($ext eq 'gmt') {
+				$error = WGPA::Utils::GseaFileConversion::saveGMTFile($genesFile->asset->path, $gmt_path, $dbh);
+			} elsif ($ext eq 'gmx') {
+				$error = WGPA::Utils::GseaFileConversion::saveGMXFile($genesFile->asset->path, $gmt_path, $dbh);
+			} elsif ($ext eq 'wgcna') {
+				$error = WGPA::Utils::GseaFileConversion::saveWGCNAFile($genesFile->asset->path, $gmt_path, $dbh);
+			} else {
+				$error = 'Only gmt, gmx, grp and wgcna files are valid to submit gene sets.';
+			}
 		}
 	} elsif (defined $genes) {
-		# Create file
 		my $gmt_path = $GSEA{INPUT_FOLDER}."/$id.grp";
-		my $file;
-		unless (open $file, '>'.$gmt_path) {
-			$dbh->do('DELETE FROM GSEAAnalysis WHERE Id = ?;', undef, $id);
-			WGPA::Utils::DB::Disconnect($dbh);
-			return $c->render_exception;
-		}
-		print $file $genes;
-		close $file;
+		$error = WGPA::Utils::GseaFileConversion::saveGRPFileFromInput($genes, $gmt_path, $dbh);
 	} else {
+		$error = 'No file was selected and no genes provided.';
+	}
+
+	if (defined $error) {
 		$dbh->do('DELETE FROM GSEAAnalysis WHERE Id = ?;', undef, $id);
 		WGPA::Utils::DB::Disconnect($dbh);
-		return $c->render(status => 400, json => { message => 'No file was selected and no genes provided.'});
+		return $c->render(status => 400, json => { message => $error});
 	}
 
 	if ($score eq 'Custom') {
 		if (defined $rankingFile) {
 			# Extension
 			my $rankingExt = ($rankingFile->filename =~ m/([^.]+)$/)[0];
-			my $error;
 			$error = 'The gene sets file uploaded can\'t be empty' unless $rankingFile->size;
 			$error = 'Only rnk files are valid to submit gene rankings.' unless $rankingExt eq 'rnk';
 			unless (defined $error) {
@@ -121,7 +131,7 @@ sub results {
 	my $c = shift;
 	my $id = $c->param('id');
 
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 	my $sth = $dbh->prepare('SELECT Title, Status, Error FROM GSEAAnalysis WHERE Id = ?;');
 	$sth->execute($id);
 	my @row = $sth->fetchrow_array();
@@ -226,7 +236,9 @@ sub results {
 				}
 			} elsif ($status eq 'Error') {
 				return $c->render(template => 'shared/error', 
-					id => $id, header => $header, message => $message, customTitle => 'Enrichment Analysis Error');
+					header => $header, 
+					message => $message, 
+					customTitle => 'Enrichment Analysis Error');
 			} else {
 				return $c->render(template => 'shared/wait',
 					url => 'gsea', 
@@ -248,7 +260,7 @@ sub  network {
 
 	my @genes = @{$c->req->json->{genes}};
 
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 	my $sth;
 	my $sql;
 
@@ -344,6 +356,7 @@ sub processSet {
 	for my $tr ($tableDOM->find('tr')->each) {
 		$summaryTable .= $tr->to_string;
 	}
+	$summaryTable =~ s/^0\.0$/<1<sup>-e256<\/sup>/g;
 	my $enrichmentPlot = $dom->find('.image')->[0]->at('img')->attr('src');
 	my $esDistribution = $dom->find('.image')->[1]->at('img')->attr('src');
 

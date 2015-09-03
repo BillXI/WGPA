@@ -1,11 +1,16 @@
 % title 'WGPA - PolyPhen-2 Analysis Results - '.$customTitle;
 % content_for css => begin
-	<link type="text/css" href="/css/vendors/TSorter.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/tsorter/TSorter.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/cytoscape-navigator/cytoscape.navigator.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/cytoscape-panzoom/cytoscape.panzoom.css" rel="stylesheet"/>
+	<link type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
 % end
 % content_for scripts => begin
 	<script type="text/javascript" src="/vendor/tsorter/TSorter.js"></script>
 	<script type="text/javascript" src="/vendor/springy/springy.js" ></script>
 	<script type="text/javascript" src="/vendor/cytoscape/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape-navigator/cytoscape.navigator.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape-panzoom/cytoscape.panzoom.js" ></script>
 	<script type="text/javascript" src="/vendor/highcharts/highcharts.js"></script>
 	<script type="text/javascript" src="/vendor/highcharts/exporting.js"></script>
 	<script type="text/javascript" src="/app/js/modules/barschart.js" ></script>
@@ -50,8 +55,8 @@
 						<th>Gene</th>
 						<th>Mutation</th>
 						<th>Polyphen Prediction</th>
-						<th>Polyphen Score</th>
-						<th><span id="ScoreHeader">EvoTol</span> Percentile</th>
+						<th data-tsorter="percentage">Polyphen Score</th>
+						<th data-tsorter="percentage"><span id="ScoreHeader">EvoTol</span> Percentile</th>
 						<th>Hot or not?</th>
 						<th>more...</th>
 					</tr>

@@ -4,7 +4,8 @@ use Mojo::Base 'Mojolicious::Controller';
 
 sub evotol_ontologies {
 	my $c = shift;
-    my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+    my $dbh = WGPA::Utils::DB::Connect('WGPA');
+
     my $sth = $dbh->prepare( "SELECT DISTINCT(Ontology) FROM EvoTol WHERE Ontology <> 'all';"); 
     $sth->execute();
     my @ontologies;

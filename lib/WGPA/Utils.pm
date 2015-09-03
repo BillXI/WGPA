@@ -18,37 +18,6 @@ sub readToDOM {
 	return Mojo::DOM->new($content);
 }
 
-sub saveWGCNAFile {
-	my $wgcnaFile = shift;
-	my $outputFile = shift;
-	my %gmxContent = ();
-
-	return (undef, 'No custom score ranking was provided.')
-		unless defined $wgcnaFile;
-
-	open my $wgcnaFileHandler, $wgcnaFile or return (undef, 'File doesn\'t exist.');
-	while (my $line = <$wgcnaFileHandler>) {
-		chomp($line);
-		my @row = split(/\t/, $line);
-		if (0+@row < 2) {
-			@row = split(/ +/, $line);
-		}
-		return (undef, 'Custom score ranking file provided is in an invalid format.')
-			unless 0+@row == 2;
-		push(@{$gmxContent{$row[0]}}, $row[1]);
-	}
-	close $wgcnaFileHandler;
-
-	open my $outputFileHandler, '>'.$outputFile or return (undef, 'File doesn\'t exist.');
-	foreach my $setId (keys %gmxContent) {
-		my $line = $setId."\tna\t".join("\t", @{$gmxContent{$setId}})."\n";
-		print $outputFileHandler $line;
-	}
-	close $outputFileHandler;
-
-	return %ranking;
-}
-
 sub getGenePercentiles {
 	my $score = shift;
 	my $ontology = shift;
@@ -64,7 +33,7 @@ sub getGenePercentiles {
 		open my $rankingFileHandler, $rankingFile or return (undef, 'File doesn\'t exist.');
 		while (my $line = <$rankingFileHandler>) {
 			my @row = split(/\t/, $line);
-			return (undef, 'Custom score ranking file provided is in an invalid format.')
+			return (undef, 'Invalid custom score ranking format.')
 				unless 0+@row == 2;
 			$ranking{$row[0]} = $row[1];
 		}
@@ -79,7 +48,7 @@ sub getGenePercentiles {
 			$cont++;
 		}
 	} else {
-		my $mydbh = $dbh ? $dbh : WGPA::Utils::DB::ConnectTo('WGPA');
+		my $mydbh = $dbh ? $dbh : WGPA::Utils::DB::Connect('WGPA');
 		my $sth;
 
 		if ($score eq 'EvoTol') {
@@ -100,7 +69,7 @@ sub getGenePercentiles {
 		$sth->finish();
 		WGPA::Utils::DB::Disconnect($mydbh) unless $dbh;
 	}
-	return %ranking;
+	return (%ranking, undef);
 }
 
 1;

@@ -111,6 +111,15 @@ var tsorter = (function()
                     return function(row){  
                         return parseFloat( that.getCell(row).firstChild.nodeValue, 10 );
                     };
+                case "percentage":
+                    return function(row){  
+                        var  value = that.getCell(row).firstChild.nodeValue; 
+                        if (isNaN(value)) {
+                            return 101;
+                        }
+                        return parseFloat( that.getCell(row).firstChild.nodeValue, 10 );
+                    };
+
                 default: /* Plain Text */
                     return function(row){  
                         return that.getCell(row).firstChild.nodeValue;

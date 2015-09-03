@@ -9,6 +9,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use Scalar::Util qw(looks_like_number);
 
 my $polyphenFolder = $WGPA::Utils::Paths::polyphenFolder;
+my $tmpFolder = $WGPA::Utils::Paths::fathmmFolder;
 my $polyphenSubmissionUrl = 'http://genetics.bwh.harvard.edu/cgi-bin/ggi/ggi2.cgi';
 my $polyphenResultsUrl = 'http://genetics.bwh.harvard.edu/ggi/pph2';
 
@@ -40,6 +41,11 @@ sub submit {
 	my $ontology = $c->param('Ontology');
 	my $threshold = $c->param('Threshold');	
 	my $rankingFile = $c->req->upload('RankingFile');
+	if (defined $rankingFile and not $rankingFile->asset->is_file ) {
+		my $file = Mojo::Asset::File->new(path => $tmpFolder.int(rand(10000000000)).'.txt');
+		$file->add_chunk( $rankingFile->slurp );
+		$rankingFile->asset($file);
+	}
 
 	my $title = $c->param('Tittle');
 
@@ -64,9 +70,9 @@ sub submit {
 					last;
 				}
 			}
-			return $c->render_exception unless defined $polyphenId;
+			return $c->render_exception("Something went wrong contacting the PolyPhen-2 server.\nTry again later") unless defined $polyphenId;
 
-			my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+			my $dbh = WGPA::Utils::DB::Connect('WGPA');
 			$dbh->do('INSERT INTO PolyPhen (PolyphenId, Title, LastPoll, PredThreshold, Score, Ontology, Threshold) VALUES (?, ?, ?, ?, ?, ?, ?);', undef, $polyphenId, $title, ''.time, $predThreshold, $score, $ontology, $threshold);#TODO
 			my $id = $dbh->{mysql_insertid};
 
@@ -84,7 +90,7 @@ sub submit {
 
 			return $c->render(json => { message => $id });
 		}
-		return $c->render(status => 502, json => { message => "Something went wrong contacting the PolyPhen server.\nTry again later." });
+		return $c->render(status => 502, json => { message => "Something went wrong contacting the PolyPhen-2 server.\nTry again later." });
 	});
 }
 
@@ -95,7 +101,7 @@ sub results {
 
 	return $c->redirect_to("$id/") if (not $c->req->url->path->trailing_slash);
 
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 	my $sth = $dbh->prepare("SELECT PolyphenId, Title, Status, LastPoll, PredThreshold, Score, Ontology, Threshold FROM PolyPhen WHERE Id = ?;");
 	$sth->execute($id);
 	my @row = $sth->fetchrow_array();
@@ -144,16 +150,15 @@ sub checkIfRunning {
 			my $message = 'This page will be automatically refreshed when the analysis is ready or you can save the link and come back at any time.';
 
 			$c->respond_to(
-				json => {json => {status => 'Queued', header => $header, message => $message}},
-				any => sub {
-					$c->render(template => 'shared/wait',
-						url => 'polyphen',
-						id => $id, 
-						header => $header,
-						message => $message,
-						customTitle => 'PolyPhen-2 Analysis Not Ready',
-						polling => 70
-					);
+				json => { json => {status => 'Queued', header => $header, message => $message } },
+				any => { 
+					template => 'shared/wait',
+					url => 'polyphen',
+					id => $id, 
+					header => $header,
+					message => $message,
+					customTitle => 'PolyPhen-2 Analysis Not Ready',
+					polling => 70
 				}
 			);
 		}
@@ -184,15 +189,14 @@ sub checkIfCompleted {
 			my $message = 'This page will be automatically refreshed when the analysis is ready or you can save the link and come back at any time.';
 			$c->respond_to(
 				json => {json => {status => 'Running', header => $header, message => $message}},
-				any => sub {
-					$c->render(template => 'shared/wait',
-						url => 'polyphen',
-						id => $id, 
-						header => $header,
-						message => $message,
-						customTitle => 'PolyPhen-2 Analysis Not Ready',
-						polling => 70
-					);
+				any => {
+					template => 'shared/wait',
+					url => 'polyphen',
+					id => $id, 
+					header => $header,
+					message => $message,
+					customTitle => 'PolyPhen-2 Analysis Not Ready',
+					polling => 70
 				}
 			);
 		}
@@ -248,7 +252,9 @@ sub renderResults {
 							$shortRes->body,
 							$id,
 							$predThreshold,
-							\%ranking,
+							$score,
+							$ontology,
+							$threshold,
 							$dbh
 						))
 					);
@@ -262,10 +268,20 @@ sub processPPHResults {
 	my $pph2PlainText = shift;
 	my $id = shift;
 	my $predThreshold = shift;
-	my $rankingRef = shift;
-	my %ranking = %{$rankingRef};
+	my $score = shift;
+	my $ontology = shift;
+	my $threshold = shift;
 	my $dbh = shift;
 
+	my (%ranking, $error) = WGPA::Utils::getGenePercentiles(
+		$score,
+		$ontology,
+		$threshold,
+		"$polyphenFolder/$id.txt",
+		$dbh
+	);
+
+	my %scores;
 	my %intolerances;
 	my @table;
 	my %domains;
@@ -279,16 +295,24 @@ sub processPPHResults {
 		my @columns = split(/\s*\t\s*/, $line);
 		my $input = $columns[0];
 		if ($input !~ /^#/) {
-			my @ensemblPIDs = WGPA::Utils::NameConversion::LU_uniprot($columns[5], $dbh);
+			my @ensemblPIDs = WGPA::Utils::NameConversion::Uniprot2Ensp($columns[5], $dbh);
 			my $mutation = $columns[7].'-'.$columns[8].' ('.$columns[6].')';
 			my $prediction = $columns[9];
-			my $score = (1 - $columns[10]) * 100;
+			my $score = $columns[10];
+			if (defined $score and $score ne ''){
+				$score = (1 - $score) * 100;
+			} else {
+				$score = 'Unknown';			
+			}
 
 			foreach my $ensemblPID (@ensemblPIDs) {
-				my $geneSymbol = WGPA::Utils::NameConversion::ensp2Symbol($ensemblPID);
-				my $intolerance = $ranking{$geneSymbol};
+				my $geneSymbol = WGPA::Utils::NameConversion::Ensp2Symbol($ensemblPID) || 'Unknown';
+				my $intolerance = $ranking{$geneSymbol} || 'Unknown';
 
-				if (defined $intolerance) {
+				if ($score eq 'Unknown' or $intolerance eq 'Unknown') {
+					push @table, [$input, $ensemblPID, $geneSymbol, $mutation, $prediction, $score, $intolerance, ''];
+				} else {
+					$scores{$geneSymbol} = $score;
 					$intolerance = 0 + $intolerance;
 					$intolerances{$geneSymbol} = $intolerance;
 					if($intolerance < 25 and $score < $predThreshold){
@@ -306,22 +330,33 @@ sub processPPHResults {
 							y => 0 + $intolerance
 						});
 					}
-				} else {
-					push @table, [$input, $ensemblPID, $geneSymbol, $mutation, $prediction, $score, 'No Score Reported', ''];
 				}
 			}
 		}
 	}
 
+	my %networkData; 
+	(%networkData, $error) = WGPA::Utils::Networks::GetFromGeneList(
+		\%scores,
+		$score,
+		$ontology,
+		$threshold,
+		\%ranking,
+		undef,
+		$dbh
+	);
+
 	WGPA::Utils::DB::Disconnect($dbh);
 
-	# TODO @table = sort {$a->[4] <=> $b->[4]} @table;
-
+	my @nodes = @{$networkData{Network}{Nodes}};
 	my @labels;
 	my @vals;
-	foreach my $label (sort { $intolerances{$a} <=> $intolerances{$b} } keys %intolerances){
-		push(@labels, $label);
-		push(@vals, $intolerances{$label});
+
+	foreach my $node (sort { $a->{data}->{percentile} <=> $b->{data}->{percentile} }  @nodes) {
+		if ($node->{data}->{percentile} ne 'Unknown') {
+			push(@labels, $node->{data}->{name});
+			push(@vals, 0 + $node->{data}->{percentile});
+		}
 	}
 
 	return {
@@ -341,47 +376,9 @@ sub processPPHResults {
 				color => 'rgba(119, 152, 191, 0.5)',
 				data => $scatter{cold}
 			}
-		]
+		],
+		networkData => \%networkData
 	};
-}
-
-sub  network {
-	my $c = shift;
-	
-	my $id = $c->param('id');
-
-	my @genes = @{$c->req->json->{genes}};
-
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
-	my $sth;
-	my $sql;
-
-	$sth = $dbh->prepare("SELECT Score, Ontology, Threshold FROM PolyPhen WHERE id = ?;");
-	$sth->execute($id);
-
-	return $c->render_exception unless (my @temp = $sth->fetchrow_array);
-
-	my $score = $temp[0];
-	my $ontology = $temp[1];
-	my $threshold = $temp[2];
-
-	$sth->finish();
-
-	my (%networkData, $error) = WGPA::Utils::Networks::GetFromGeneList(
-		\@genes,
-		$score,
-		$ontology,
-		$threshold,
-		$polyphenFolder."$id.rnk", 
-		$dbh
-	);
-
-	return $c->render(status => 400, json => { message => $error})
-		if defined $error;
-
-	WGPA::Utils::DB::Disconnect($dbh);
-	
-	return $c->render(json => \%networkData);
 }
 
 1;

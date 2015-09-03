@@ -5,9 +5,8 @@ var Basic = (function (window, document) {
 		'DDX58\nC18orf25\nSCN1A\nRUVBL2\nITGB4\nCACNA1A\nCUX2\nYWHAG\nHCK\nRIOK3\nMTOR\nFASN\nHIST2H2BE\n' +
 		'LUC7L3\nKCNQ3\nTRIO\nGRIN2B\nANK3\nHIPK3\nCHD4\nMEOX2\nFLNA\nMLL\nCTTNBP2NL\nSLC1A2\nPTEN\nRRP1B\nGABRB1';
 
-	var cardiacMuscleContractionNetwork = 'ACTC1 MYH6\nACTC1 MYH6\nACTC1 MYH7\nACTC1 MYH7\n' +
-		'ACTC1 MYL2\nACTC1 MYL2\nACTC1 MYL3\nACTC1 MYL3\nACTC1 MYL4\nACTC1 MYL4\nTNNC1 TNNI3\n' +
-		'TNNC1 TNNT2\nTNNI3 ACTC1\nTNNI3 ACTC1\nTNNI3 TNNT2\nTNNT2 TNNC1\nTNNT2 TPM1\nTNNT2 TPM2\n' +
+	var cardiacMuscleContractionNetwork = 'ACTC1 MYH6\nACTC1 MYH7\nACTC1 MYL2\nACTC1 MYL3\nACTC1 MYL4\nTNNC1 TNNI3\n' +
+		'TNNC1 TNNT2\nTNNI3 ACTC1\nTNNI3 TNNT2\nTNNT2 TNNC1\nTNNT2 TPM1\nTNNT2 TPM2\n' +
 		'TNNT2 TPM3\nTNNT2 TPM4\nTPM1 ACTC1\nTPM2 ACTC1\nTPM3 ACTC1\nTPM4 ACTC1';
 
 	var allCheckbox,
@@ -127,6 +126,10 @@ var Basic = (function (window, document) {
 			tr = document.createElement('tr');
 
 			td = document.createElement('td');
+			td.appendChild(document.createTextNode(gene.input));
+			tr.appendChild(td);
+
+			td = document.createElement('td');
 			td.appendChild(document.createTextNode(gene.name));
 			tr.appendChild(td);
 
@@ -142,6 +145,9 @@ var Basic = (function (window, document) {
 		tbl.appendChild(tbdy);
 
 		tsorter.create('results-table');
+		var header = tbl.querySelector('thead > tr').children[2];
+		header.click();
+		header.click();
 	}
 
 	function renderAllRanking(genes) {
@@ -154,6 +160,10 @@ var Basic = (function (window, document) {
 			gene = genes[i];
 			
 			tr = document.createElement('tr');
+
+			td = document.createElement('td');
+			td.appendChild(document.createTextNode(gene.input));
+			tr.appendChild(td);
 
 			td = document.createElement('td');
 			td.appendChild(document.createTextNode(gene.name));
@@ -178,7 +188,10 @@ var Basic = (function (window, document) {
 		tbl.removeChild(tbl.getElementsByTagName('tbody')[0]);
 		tbl.appendChild(tbdy);
 
-		tsorter.create('all-results-table');
+		var sorter = tsorter.create('all-results-table');
+		var header = tbl.querySelector('thead > tr').children[2];
+		header.click();
+		header.click();
 	}
 
 	function showNetwork() {

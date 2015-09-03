@@ -3,32 +3,63 @@ use WGPA::Utils;
 use WGPA::Utils::DB;
 
 sub GetFromGeneList {
-	my $genes = shift;
-	my @genes = @{$genes};
+	my $genesRef = shift;
+	my @genes;
+	my %scores;
+	if (ref($genesRef) eq 'ARRAY') {
+		@genes = @{$genesRef};
+	} elsif (ref($genesRef) eq 'HASH') {
+		%scores = %{$genesRef};
+		@genes = keys %scores;
+	} else {
+		return (undef, 'Invalid gene list.');
+	}
 	my $score = shift;
 	my $ontology = shift;
 	my $threshold = shift;
 	my $rankingFile = shift;
+	my $inputMapRef = shift;
+	my %inputMap = %{$inputMapRef};
 	my $dbh = shift;
 
-	my (%ranking, $error) = WGPA::Utils::getGenePercentiles($score, $ontology, $threshold, $rankingFile, $dbh);
-	return (undef, $error) if defined $error;
+	my %ranking;
+	my $error;
+	if (ref($rankingFile) eq 'HASH') {
+		%ranking = %{$rankingFile};
+	} else {
+		(%ranking, $error) = WGPA::Utils::getGenePercentiles($score, $ontology, $threshold, $rankingFile, $dbh);
+		return (undef, $error) if defined $error;
+	}
 
 	my @nodes;
 	my @edges;
 	my %nodeDegree = ();
 
-	my $mydbh = $dbh ? $dbh : WGPA::Utils::DB::ConnectTo('WGPA');
+	my $mydbh = $dbh ? $dbh : WGPA::Utils::DB::Connect('WGPA');
 
 	my $geneList = '';
+
 	foreach my $gene (@genes) {
 		next if exists $nodeDegree{$gene};
+		my %node = %{{ id => $gene, input => $inputMap{$gene}, name => $gene }};
 		if (my $perc = $ranking{$gene}) {
 			my $color = $perc * 0.85 + 5;
-			push(@nodes, { data => { id => $gene, name => $gene, percentile => $perc, backgroundColor => "hsl(204, 100%, $color%)" } });
+			$node{percentile} = $perc;
+			$node{backgroundColor} = "hsl(204, 100%, $color%)";
 		} else {
-			push(@nodes, { data => { id => $gene, name => $gene, percentile => 'Unknown',  backgroundColor => 'red' } });
+			$node{percentile} = 'Unknown';
+			$node{backgroundColor} = 'red';
 		}
+
+		if (%scores) {
+			if (my $perc = $scores{$gene}) {
+				my $color = $perc * 0.85 + 5;
+				$node{borderColor} = "hsl(204, 100%, $color%)";
+			} else {
+				$node{borderColor} = 'red';
+			}
+		}
+		push(@nodes, { data => \%node });
 		$nodeDegree{$gene} = 0;
 		$geneList .= $mydbh->quote_identifier($gene).',';
 	}
@@ -53,7 +84,7 @@ sub GetFromGeneList {
 	while ( my ($key, $value) = each %nodeDegree ) {
 		push(@serie, {name => $key, data => [[0 + $ranking{$key}, $value]]});
 	}
-	
+
 	return (
 		Network => { Nodes => \@nodes, Edges => \@edges },
 		DegreePlot => { Score => $score, Series => \@serie }
@@ -67,6 +98,8 @@ sub GetFromNetwork {
 	my $ontology = shift;
 	my $threshold = shift;
 	my $rankingFile = shift;
+	my $inputMapRef = shift;
+	my %inputMap = %{$inputMapRef};
 	my $dbh = shift;
 
 	my (%ranking, $error) = WGPA::Utils::getGenePercentiles($score, $ontology, $threshold, $rankingFile, $dbh);
@@ -84,12 +117,26 @@ sub GetFromNetwork {
 				next;
 			}
 			$nodeDegree{$gene} = 1;
+			my %node = %{{ id => $gene, input => $inputMap{$gene}, name => $gene }};
 			if (my $perc = $ranking{$gene}) {
 				my $color = $perc * 0.85 + 5;
-				push(@nodes, { data => { id => $gene, name => $gene, percentile => $perc, backgroundColor => "hsl(204, 100%, $color%)" } });
+				$node{percentile} = $perc;
+				$node{backgroundColor} = "hsl(204, 100%, $color%)";
 			} else {
-				push(@nodes, { data => { id => $gene, name => $gene, percentile => 'Unknown', backgroundColor => 'red' } });
+				$node{percentile} = 'Unknown';
+				$node{backgroundColor} = 'red';
 			}
+
+			if (%scores) {
+				if (my $perc = $scores{$gene}) {
+					my $color = $perc * 0.85 + 5;
+					$node{borderColor} = "hsl(204, 100%, $color%)";
+				} else {
+					$node{borderColor} = 'red';
+				}
+			}
+
+			push(@nodes, { data => \%node });
 		}
 		push(@edges, { data => { source => $genes[0], target => $genes[1] } });
 	}

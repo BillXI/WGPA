@@ -30,13 +30,11 @@ sub startup {
 	my $fathmm = $r->route('/fathmm')->to(controller => 'fathmm', tab => 'fathmm');
 	$fathmm->get('/')->to(action =>'index');
 	$fathmm->post('/')->to(action =>'submit');
-	$fathmm->post('/network')->to(action =>'network'); 
 
 	my $polyphen = $r->route('/polyphen')->to(controller => 'polyphen', tab => 'polyphen');
 	$polyphen->get('/')->to(action => 'index');
 	$polyphen->post('/')->to(action => 'submit');
 	$polyphen->get('/:id')->to(action =>'results');
-	$polyphen->post('/:id/network')->to(action =>'network');
 
 	# Defaults
 	$app->defaults(layout => 'default');

@@ -1,11 +1,16 @@
 % title 'WGPA - FATHMM Analysis';
 % content_for css => begin
 	<link type="text/css" href="/vendor/tsorter/TSorter.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/cytoscape-navigator/cytoscape.navigator.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/cytoscape-panzoom/cytoscape.panzoom.css" rel="stylesheet"/>
+	<link type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
 % end
 % content_for scripts => begin
 	<script type="text/javascript" src="/vendor/tsorter/TSorter.js"></script>
 	<script type="text/javascript" src="/vendor/springy/springy.js" ></script>
 	<script type="text/javascript" src="/vendor/cytoscape/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape-navigator/cytoscape.navigator.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape-panzoom/cytoscape.panzoom.js" ></script>
 	<script type="text/javascript" src="/vendor/highcharts/highcharts.js"></script>
 	<script type="text/javascript" src="/vendor/highcharts/exporting.js"></script>
 	<script type="text/javascript" src="/app/js/modules/barschart.js" ></script>
@@ -106,22 +111,19 @@
 			<p>FATHMM is available in it's standalone version <a href="http://fathmm.biocompute.org.uk" target="_blank">here</a> where you can find full details. In summary FATHMM is capable of predicting the functional effects of protein missense mutations by combining sequence conservation within hidden Markov models (HMMs), representing the alignment of homologous sequences and conserved protein domains, with "pathogenicity weights", representing the overall tolerance of the protein/domain to mutations. The work is published and can be found <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3558800/" target="_blank">here</a>.</p>
 
 			 <h4>Step 1: Entering (or uploading) your gene, gene-set or network using any of accepted FATHMM formats:</h4>
-			<ul>
-				<li>
-					<code>&lt;protein&gt; &lt;substitution&gt;</code>
-				</li>
-				<li>
-					<code>dbSNP rs identifiers</code>
-				</li>
-			</ul>
-			<p>Where <code>&lt;protein&gt;</code> is the protein identifier and <code>&lt;substitution&gt;</code> is the amino acid substitution in the conventional one letter format.  Multiple substitutions can be entered on a single line and should be separated by a comma.  <b>We accept SwissProt/TrEMBL, RefSeq and Ensembl protein identifiers</b>, e.g.:</p>
-			<pre>P43026 L441P
-ENSP00000325527 N548I,E1073K,C2307S </pre>
+			<p>
+				<code>&lt;Protein ID&gt; &lt;substitution&gt;</code><br/>
+				<code>&lt;Protein ID&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
+				<code>&lt;Gene Symbol&gt; &lt;substitution&gt;</code><br/>
+				<code>&lt;Gene Symbol&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
+				<code>&lt;dbSNP rs identifiers&gt;</code>
+			</p>
+			<p>Where <code>&lt;Protein ID&gt;</code> is the protein identifier in Ensembl, RefSeq or Uniprot format and <code>&lt;Gene Symbol&gt;</code> is gene symbol in Entrez format. Multiple substitutions can be entered on a single line and should be separated by a comma.</p>
 			<h4>Step 2: Choosing the settings that you require for FATHMM:</h4>
 			<ul>
 				<li>Algorithm: Choose the prediction algorithm that better suits your purpose:
 					<ul>
-						<li><b>Unweighted</b> Return predictions capable of discriminating between disease-causing mutations and neutral polymorphismsbased on sequence conservation.</li>
+						<li><b>Unweighted</b> Return predictions capable of discriminating between disease-causing mutations and neutral polymorphisms based on sequence conservation.</li>
 						<li><b>Weighted</b> Returns predictions capable of discriminating between disease-causing mutations and neutral polymorphisms combining sequence conservation with pathogenicity weights.</li>
 					</ul>
 				</li>
@@ -142,6 +144,8 @@ ENSP00000325527 N548I,E1073K,C2307S </pre>
 			<ul>
 				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
 			</ul>
+			<h5> Gene Constrains </h5>
+
 			<h5> Custom Ranking </h5>
 			<ul>
 				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>
@@ -181,13 +185,13 @@ ENSP00000325527 N548I,E1073K,C2307S </pre>
 			<table id="results-table" class="table">
 				<thead>
 					<tr>
-						<th>Entry</th>
+						<th>Input</th>
 						<th>Protein</th>
 						<th>Gene</th>
 						<th>Mutation</th>
 						<th>FATHMM Prediction</th>
-						<th data-tsorter="numeric">FATHMM Score</th>
-						<th data-tsorter="numeric"><span id="score-header">EvoTol</span> Percentile</th>
+						<th data-tsorter="percentage">FATHMM Score</th>
+						<th data-tsorter="percentage"><span id="score-header">EvoTol</span> Percentile</th>
 						<th>Hot or not?</th>
 						<th>more...</th>
 					</tr>

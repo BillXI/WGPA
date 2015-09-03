@@ -1,6 +1,6 @@
 package WGPA::Utils::Paths;
 
-our $rootFolder = '/Users/ak2102/Documents/EvoTol-Net/Web_Interface/WGPA';#'/var/www/apps/WGPA';
+our $rootFolder = '/var/www/apps/WGPA';
 
 our $dataFolder = "$rootFolder/data";
 mkdir $dataFolder unless -e $dataFolder;
@@ -23,5 +23,9 @@ mkdir $fathmmFolder unless -e $fathmmFolder;
 
 our $polyphenFolder = "$dataFolder/polyphen";
 mkdir $polyphenFolder unless -e $polyphenFolder;
+
+our $tmpFolder = '/var/tmp/wgpa';
+mkdir $tmpFolder unless -e $tmpFolder;
+
 
 1;

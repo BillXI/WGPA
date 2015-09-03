@@ -93,7 +93,7 @@
 					<label class="control-label col-sm-5" for="pred-threshold">Prediction cutoff:</label>
 					<div class="col-sm-7">
 						<input type="text" id="pred-threshold" name="pred-threshold" class="form-control">
-						<p class="help-block">the percentile to consider</p>
+						<p class="help-block">the quantile to consider</p>
 					</div>
 				</div>
 				<p>Step 3: Select which pathogenic prediction measure you would like to use:</p>
@@ -124,11 +124,12 @@
 			<h4>Step 1: Entering (or uploading) your gene, gene-set or network using any of accepted PolyPhen-2 formats:</h4>
 			<p> Mutations for PolyPhen-2 can be manually entered or uploaded in a text file. Each mutations should be on a seperate line and need to be entered in one of the following formats:<p>
 			<p>
-				<code>&lt;UniprotID&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
-				<code>&lt;RefSeq protein ID&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
+				<code>&lt;Protein ID&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
+				<code>&lt;Gene Symbol&gt; &lt;Position&gt; &lt;WT&gt; &lt;Mutant&gt;</code><br/>
 				<code>&lt;dbSNP id&gt;</code><br/>
 				<code>&lt;Locus&gt; &lt;WT/Mutant&gt;</code><br/>
 			</p>
+			<p>Where <code>&lt;Protein ID&gt;</code> is the protein identifier in Ensembl, RefSeq or Uniprot format and <code>&lt;Gene Symbol&gt;</code> is gene symbol in Entrez format.</p>
 			<h4>Step 2: Choosing the settings that you require for PolyPhen-2:</h4>
 			<p> There are a number of paramaters that can altered for PolyPhen-2, these are summarised as follows:</p>
 			<ul>
@@ -158,6 +159,8 @@
 			<ul>
 				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
 			</ul>
+			<h5> Gene Constrains </h5>
+
 			<h5> Custom Ranking </h5>
 			<ul>
 				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>

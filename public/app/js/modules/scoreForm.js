@@ -67,13 +67,17 @@ var ScoreForm = (function (window, document) {
 					getOntologiesRquest.open('get', '/evotol/ontologies');
 					getOntologiesRquest.onreadystatechange = function () {
 						if(this.readyState === 4) {
-							var data = JSON.parse(this.responseText);
-							if(this.status === 200) {
-								evotol = evotol(data);
-								optionsContainer.innerHTML = evotol;
-								initializeSelect2();
+							if (this.status === 500) {
+								Alert({text: 'There was an unexpected error. Please contact the web admin.', type: 'danger', layout: 'top-center'});
 							} else {
-								Alert({text: data.message, type: 'danger', layout: 'top-center'});
+								var data = JSON.parse(this.responseText);
+								if(this.status === 200) {
+									evotol = evotol(data);
+									optionsContainer.innerHTML = evotol;
+									initializeSelect2();
+								} else {
+									Alert({text: data.message, type: 'danger', layout: 'top-center'});
+								}
 							}
 						}
 					};

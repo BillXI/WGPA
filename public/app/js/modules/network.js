@@ -12,6 +12,12 @@
 					'<p><span class="pull-left">Intolerant</span><span class="pull-right">Tolerant</span></p>' +
 					'<div id="cy-colors"></div>' +
 					'<p class="text-center">Tap a node to highlight its neighbourhood</p>' +
+					((this.model.Network.Nodes[0] || [{}]).data.borderColor 
+						? '<p class="text-center">The inner color represents the intolerance and the border color the score given by the anlysis.</p>' 
+						: '' ) +
+					(!window.chrome 
+						? '<p class="text-center" style="color: red;">There are issues displaying the network with several browsers. If you\'re having trouble try downloading the latest version of <a href="http://www.google.com/chrome/" target="_blank">chrome</a></p>'
+						: '') +
 				'</div>' +
 				'<div class="col-lg-12">' +
 					'<div id="cy"></div></div>' +
@@ -56,6 +62,11 @@
 						'text-outline-width': 2,
 						'text-outline-color': '#888'
 					})
+				.selector('node[borderColor]')
+					.css({
+						'border-width': '5px',
+						'border-color': 'data(borderColor)'
+					})
 				.selector('edge')
 					.css({
 						'target-arrow-shape': 'triangle'
@@ -79,26 +90,14 @@
 			},
 			
 			layout: {
-				name: model.Edges.length < 100 ? 'circle' : 'springy',
-				startAngle: 3/2 * Math.PI,
-				minNodeSpacing: 10, 
-				animate: true, // whether to show the layout as it's running
-				maxSimulationTime: 4000, // max length in ms to run the layout
-				ungrabifyWhileSimulating: true, // so you can't drag nodes during layout
-				padding: 10, // padding on fit
-				 concentric: function(node){ // returns numeric value for each node, placing higher nodes in levels towards the centre
-    				 return node.degree();
-  				},
-				// springy forces
-				stiffness: 400,
-				repulsion: 400,
-				damping: 0.5
+				name: model.Edges.length < 20 ? 'springy' : 'circle',
 			},
 			
 			ready: function () {
 				var that = this;
 
-				this.rendered = true;
+				container.cytoscapePanzoom();
+				container.cytoscapeNavigator();
 				
 				// giddy up...
 				

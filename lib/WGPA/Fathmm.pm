@@ -9,6 +9,7 @@ use Scalar::Util qw(looks_like_number);
 
 my $rootFolder = $WGPA::Utils::Paths::rootFolder;
 my $fathmmFolder = $WGPA::Utils::Paths::fathmmFolder;
+my $tmpFolder = $WGPA::Utils::Paths::fathmmFolder;
 
 sub index {
 	my $c = shift;
@@ -34,6 +35,11 @@ sub submit {
 	my $ontology = $c->param('Ontology');
 	my $threshold = $c->param('Threshold');	
 	my $rankingFile = $c->req->upload('RankingFile');
+	if (defined $rankingFile and not $rankingFile->asset->is_file ) {
+		my $file = Mojo::Asset::File->new(path => $tmpFolder.int(rand(10000000000)).'.txt');
+		$file->add_chunk( $rankingFile->slurp );
+		$rankingFile->asset($file);
+	}
 	
 	if (defined($genesFile)) {
 		# Extension
@@ -50,7 +56,7 @@ sub submit {
 		return $c->render(status => 400, json => { message => 'No file was selected and no substitutions provided.'});
 	}
 
-	my $dbh = WGPA::Utils::DB::ConnectTo('WGPA');
+	my $dbh = WGPA::Utils::DB::Connect('WGPA');
 
 	my (%ranking, $error) = WGPA::Utils::getGenePercentiles(
 		$score,
@@ -61,9 +67,9 @@ sub submit {
 	return $c->render(status => 400, json => { message => $error})
 		if defined $error;
 
-	my ($output, %map_input) = createInputs($c, $genes, $weighted , $phenotype, $predThreshold, $dbh);
+	my ($output, %inputMap) = createInputs($c, $genes, $weighted , $phenotype, $predThreshold, $dbh);
 
-	result($c, $output, \%map_input, $predThreshold, $score, $ontology, $threshold, \%ranking, $dbh)
+	result($c, $output, \%inputMap, $predThreshold, $score, $ontology, $threshold, \%ranking, $dbh)
 		if defined $output;
 
 	WGPA::Utils::DB::Disconnect($dbh);
@@ -80,73 +86,64 @@ sub createInputs {
 
 	my $dbh = shift;
 
-	my %map_input;
-	my @row = split(/\n/, $genes);
-	my @details;
+	my %inputMap;
+	my %inputMapReverse;
+	my @row = split(/\r\n|\n/, $genes);
 
 	my $id = int(rand(10000000000));
 	my $input = "$fathmmFolder/$id.in";
-	my $histogram = "$fathmmFolder/$id.hist";
 	my $output = "$fathmmFolder/$id.out";
 
 	open INPUT, ">$input";
-	open HIST, ">$histogram";
 
 	foreach my $row (@row){
 		my @element = split(/ +/,$row);
+		my $elementCount = 0 + @element;
 
-		return $c->render(status => 400, json => { message => 'The substitutions provided are in an invalid format.' })
-			unless (0 + @element == 2);
+		if ($elementCount == 1) {
+			print INPUT $element[0];
+		} elsif ($elementCount == 2) {
+			my $input = $element[0];
+			my $locations = $element[1];
+			my @proteins;
 
-		my $ID = $element[0];
-		my $locations = $element[1];
-		my $posextract = $locations;
-		$posextract =~ s/^.//;
-		$posextract =~ s/.$//;
-		if($ID =~ /ENSP/){
-			@details = WGPA::Utils::NameConversion::LU_ensp($ID, $dbh);
-			foreach my $t (@details){
-				$map_input{$t} = $ID;
-				print HIST "$t\t$posextract\n";
+			if (exists $inputMapReverse{$input}) {
+				@proteins = @{$inputMapReverse{$input}};
+			} else {
+				@proteins = WGPA::Utils::NameConversion::Any2Ensp($input, $dbh);
+				$inputMapReverse{$input} = \@proteins;
 			}
-		}elsif($ID =~ /NM_/){
-			@details = WGPA::Utils::NameConversion::LU_refseq_mrna($ID, $dbh);
-			foreach my $t (@details){
-				$map_input{$t} = $ID;
-				print HIST "$t\t$posextract\n";
+
+			foreach my $prot (@proteins){
+				$inputMap{$prot} = $input;
+				print INPUT "$prot $locations\n";
 			}
-		}elsif($ID =~ /NP_/){
-			@details = WGPA::Utils::NameConversion::LU_refseq_p($ID, $dbh);
-			foreach my $t (@details){
-				$map_input{$t} = $ID;
-				print HIST "$t\t$posextract\n";
+		} elsif ($elementCount == 4) {
+			my $input = $element[0];
+			my $position = $element[1];
+			my $wt = $element[2];
+			my $mutant = $element[3];
+
+			my @proteins;
+
+			if (exists $inputMapReverse{$input}) {
+				@proteins = $inputMapReverse{$input};
+			} else {
+				@proteins = WGPA::Utils::NameConversion::Any2Ensp($input, $dbh);
+				$inputMapReverse{$input} = @proteins;
 			}
-		}elsif($ID =~ /ENSG/){
-			@details = WGPA::Utils::NameConversion::LU_ensg($ID, $dbh);
-			foreach my $t (@details){
-				$map_input{$t} = $ID;
-				print HIST "$t\t$posextract\n";
+
+			foreach my $prot (@proteins){
+				$inputMap{$prot} = $input;
+				print INPUT "$prot $wt$position$mutant\n";
 			}
-		}elsif($ID =~ /ENST/){
-			@details = WGPA::Utils::NameConversion::LU_enst($ID, $dbh);
-			foreach my $t (@details){
-				$map_input{$t} = $ID;
-				print HIST "$t\t$posextract\n";
-			}
-		}else{
-			@details = WGPA::Utils::NameConversion::LU_uniprot($ID, $dbh);
-			foreach my $t (@details){
-				$map_input{$t} = $ID;
-				print HIST "$t\t$posextract\n";
-			}		
-		}
-		foreach my $prot (@details){
-			print INPUT "$prot $locations\n";
+		} else {
+			WGPA::Utils::DB::Disconnect($dbh);
+			return $c->render(status => 400, json => { message => 'Invalid input format.' });
 		}
 	}
 
 	close INPUT;
-	close HIST;
 
 	my $cmd = "python $rootFolder/lib/fathmm/fathmm.py $input $output ";
 	$cmd .= "-w $weighted " unless ! defined $weighted;
@@ -157,15 +154,15 @@ sub createInputs {
 		$c->render_exception('There was an error executing fathmm.');
 		return;
 	}
-	return ($output, %map_input);
+	return ($output, %inputMap);
 }
 
 sub result {
 	my $c = shift;
 	
 	my $output = shift;
-	my $map_input = shift;
-	my %map_input = %{$map_input};
+	my $inputMap = shift;
+	my %inputMap = %{$inputMap};
 
 	my $predThreshold = shift;
 
@@ -177,7 +174,7 @@ sub result {
 
 	my $dbh = shift;
 
-	my %intolerances;
+	my %scores;
 	my @table;
 	my %domains;
 	my %scatter = (
@@ -186,25 +183,21 @@ sub result {
 	);
 
 	open OUTPUT, $output;
-	print STDERR $output;
 	while(<OUTPUT>){
 		chomp;
 		unless($. == 1){
-			print STDERR "$_\n";
 			my @line = split("\t",$_);
 			my $ensemblPID = $line[2];
-			my $input = $map_input{$ensemblPID};
-			my $geneSymbol = WGPA::Utils::NameConversion::ensp2Symbol($ensemblPID, $dbh) || 'No Symbol Reported';
+			my $input = $inputMap{$ensemblPID};
+			my $geneSymbol = WGPA::Utils::NameConversion::Ensp2Symbol($ensemblPID, $dbh) || 'Unknown';
 			my $mutation =$line[3];
-			my $prediction = $line[4] || 'No Prediction Reported';
+			my $prediction = $line[4] || 'Unknown';
 			my $score = $line[5];
-			my $intolerance = $ranking{$geneSymbol};
-			my $domain = "No details";
-			if(defined($line[9])){
-				$domain = $line[9];
-			}elsif(defined($line[8])){
-				$domain = $line[8];
+			unless (defined $score and $score ne ''){
+				$score = 'Unknown';			
 			}
+			my $intolerance = $ranking{$geneSymbol} || 'Unknown';
+			my $domain = $line[9] || 'Unknown';
 
 			if($prediction eq 'DAMAGING'){
 				if(exists($domains{$domain})){
@@ -214,28 +207,44 @@ sub result {
 				}
 			}
 
-			if (defined $intolerance) {
-				$intolerances{$geneSymbol} = 0 + $intolerance;
-				if($intolerance < 25 and $score < $predThreshold){
-					push(@table,[$input, $ensemblPID, $geneSymbol, $mutation, $prediction, $score, $intolerance, 'hot']);
-					print STDERR "$ensemblPID($geneSymbol)_$mutation\t$scatter{'hot'}\n";
-					push(@{$scatter{'hot'}}, {
-						info => "$ensemblPID($geneSymbol)_$mutation",
-						x => 0 + $score,
-						y => 0 + $intolerance
-					});
-				} else {
-					push(@table,[$input, $ensemblPID, $geneSymbol, $mutation, $prediction,$ score, $intolerance,'cold']);
-					push(@{$scatter{'cold'}}, {
-						info => "$ensemblPID($geneSymbol)_$mutation",
-						x => 0 + $score,
-						y => 0 + $intolerance
-					});
-				}
+			if ($score eq 'Unknown' or $intolerance eq 'Unknown') {
+				push @table, [$input, $ensemblPID, $geneSymbol, $mutation, $prediction, $score, $intolerance, ''];
 			} else {
-				push @table, [$input, $ensemblPID, $geneSymbol, $mutation, $prediction, $score, 'No Score Reported', ''];
+				$intolerance = 0 + $intolerance;
+				my $zone = 'cold';
+				if($intolerance < 25 and $score < $predThreshold){
+					$zone =  'hot';
+				}
+				push(@table,[$input, $ensemblPID, $geneSymbol, $mutation, $prediction, $score, $intolerance, $zone]);
+				push(@{$scatter{$zone}}, {
+					info => "$ensemblPID($geneSymbol)_$mutation",
+					x => 0 + $score,
+					y => 0 + $intolerance
+				});
+				$score = (10 + $score) * 100 / 20;
+				if ($score < 0) {
+					$score = 0;
+				} elsif ($score > 100) {
+					$score = 100;
+				}
+				$scores{$geneSymbol} = $score;
 			}
 		}
+	}
+
+	my (%networkData, $error) = WGPA::Utils::Networks::GetFromGeneList(
+		\%scores,
+		$score,
+		$ontology,
+		$threshold,
+		\%ranking,
+		undef,
+		$dbh
+	);
+
+	if (defined $error) {
+		WGPA::Utils::DB::Disconnect($dbh);
+		return $c->render(status => 400, json => { message => $error});
 	}
 
 	shift @table;
@@ -244,14 +253,18 @@ sub result {
 	foreach my $dom (sort { $domains{$b} <=> $domains{$a} } keys %domains){
 		push(@dom_table,[$dom,$domains{$dom}]);
 	}
-
+	
+	my @nodes = @{$networkData{Network}{Nodes}};
 	my @labels;
 	my @vals;
-	foreach my $label (sort { $intolerances{$a} <=> $intolerances{$b} } keys %intolerances){
-		push(@labels, $label);
-		push(@vals, $intolerances{$label});
+
+	foreach my $node (sort { $a->{data}->{percentile} <=> $b->{data}->{percentile} }  @nodes) {
+		if ($node->{data}->{percentile} ne 'Unknown') {
+			push(@labels, $node->{data}->{name});
+			push(@vals, 0 + $node->{data}->{percentile});
+		}
 	}
-	
+
 	return $c->render(json => {
 		score => $score,
 		bar => {
@@ -271,33 +284,9 @@ sub result {
 				color => 'rgba(119, 152, 191, 0.5)',
 				data => $scatter{cold}
 			}
-		]
+		],
+		networkData => \%networkData
 	});
-}
-
-sub  network {
-	my $c = shift;
-
-	my $genesList = $c->param('Genes');
-	my @genes = split(',', $genesList);
-
-	my $score = $c->param('Score');
-	my $ontology = $c->param('Ontology');
-	my $threshold = $c->param('Threshold');	
-	my $rankingFile = $c->req->upload('RankingFile');
-
-	my (%networkData, $error) = WGPA::Utils::Networks::GetFromGeneList(
-			\@genes,
-			$score,
-			$ontology,
-			$threshold,
-			defined $rankingFile ? $rankingFile->asset->path : undef
-		);
-
-	return $c->render(status => 400, json => { message => $error})
-		if defined $error;
-	
-	return $c->render(json => \%networkData);
 }
 
 1;

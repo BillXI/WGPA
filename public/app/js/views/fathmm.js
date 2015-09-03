@@ -19,7 +19,8 @@ var Fathmm = (function (window, document) {
 		resultsContainer,
 		algorithmSelector,
 		inheritedOptions,
-		predThreshold;
+		predThreshold,
+		networkData;
 
 	function init(){
 		submitButton = document.getElementById('submit-button');
@@ -123,7 +124,7 @@ var Fathmm = (function (window, document) {
 		networkContainer = document.getElementById('cy-container');
 		spinner = document.getElementsByClassName('spinnerContainer')[0];
 
-		showNetwokButton.addEventListener('click', showNetwork);
+		showNetwokButton.addEventListener('click', toggleNetwork);
 
 		genes = data.bar.labels;
 
@@ -163,7 +164,9 @@ var Fathmm = (function (window, document) {
 			}
 		).render();
 
-		renderDomTable(data);
+		renderDomTable(data.domains);
+
+		networkData = data.networkData;
 	}
 
 	function renderSubsTable(score, data){		
@@ -188,7 +191,12 @@ var Fathmm = (function (window, document) {
 				td = document.createElement('td');
 				td.appendChild(document.createTextNode(data[i][j]));
 				if (j === 4) {
-					td.style.color = data[i][j] === 'DAMAGING' ? 'red' : 'green';
+					var prediction = data[i][j];
+					if (prediction === 'DAMAGING') {
+						td.style.color = 'red';
+					} else if (prediction === 'TOLERATED') {
+						td.style.color = 'green';
+					}
 				}
 				tr.appendChild(td);
 			}
@@ -212,16 +220,16 @@ var Fathmm = (function (window, document) {
 		tsorter.create('results-table');
 	}
 
-	function renderDomTable(table_data){
+	function renderDomTable(table_data) {
 		var tbdy=document.createElement('tbody'),
 			tr,
 			td;
 		
-		for(var i = 0; i < table_data.domains.length; i++){
+		for(var i = 0; i < table_data.length; i++){
 			tr = document.createElement('tr');
-			for(var j = 0; j < table_data.domains[i].length; j++){
+			for(var j = 0; j < table_data[i].length; j++){
 				td = document.createElement('td');
-				td.appendChild(document.createTextNode(table_data.domains[i][j]));
+				td.appendChild(document.createTextNode(table_data[i][j]));
 				tr.appendChild(td);
 			}			
 			tbdy.appendChild(tr);			
@@ -234,61 +242,18 @@ var Fathmm = (function (window, document) {
 		tsorter.create('dom-table');
 	}
 
-	function submitNetwork() {
-		if (networkContainer.style.display === 'block') {
-			hideNetwork();
-		} else {
-			if (network) {
-				showNetwork();
-			}  else {
-				showNetwokButton.setAttribute('disabled', '');
-				spinner.style.display = 'block';
-				var networkRequest = new XMLHttpRequest();
-				var url = window.location.href,
-					lastIndex = url.length - 1;
-				if (url.substring(lastIndex) === '/') {
-					url = url.substring(0, lastIndex);
-				}
-
-				var formData = ScoreForm.GetFormData();
-				formData.append('Genes', genes); 
-
-				networkRequest.open('post', url + '/network', true);
-				networkRequest.onreadystatechange = function () {
-					if(this.readyState === 4) {
-						if (this.status === 500) {
-							Alert({text: 'There was an unexpected error. Please contact the web admin.', type: 'danger', layout: 'top-center'});
-						} else {
-							var data = JSON.parse(this.responseText);
-							if(this.status === 200) {
-								spinner.style.display = 'none';
-								network = new Network('#cy-container', data);
-								network.render();
-								showNetwork();
-							} else {
-								Alert({text: data.message, type: 'danger', layout: 'top-center'});
-							}
-						}
-						showNetwokButton.removeAttribute('disabled');
-					}
-				};
-				networkRequest.send(formData);
+	function toggleNetwork() {
+		if (networkContainer.style.display === 'none') {
+			if (!network) {
+				network = new Network('#cy-container', networkData);
+				network.render();
 			}
+			networkContainer.style.display = 'block';
+			showNetwokButton.innerText = 'Hide interaction network';
+		} else {
+			networkContainer.style.display = 'none';
+			showNetwokButton.innerText = 'Show interaction network';
 		}
-	}
-
-	function showNetwork () {
-		if (!network) {
-			submitNetwork();
-			return;
-		}
-		networkContainer.style.display = 'block';
-		showNetwokButton.innerText = 'Hide interaction network';
-	}
-
-	function hideNetwork (){
-		networkContainer.style.display = 'none';
-		showNetwokButton.innerText = 'Show interaction network';
 	}
 
 	return {

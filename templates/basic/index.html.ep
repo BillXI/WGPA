@@ -1,11 +1,16 @@
 % title 'WGPA - Basic Analysis';
 % content_for css => begin
 	<link type="text/css" href="/vendor/tsorter/TSorter.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/cytoscape-navigator/cytoscape.navigator.css" rel="stylesheet"/>
+	<link type="text/css" href="/vendor/cytoscape-panzoom/cytoscape.panzoom.css" rel="stylesheet"/>
+	<link type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
 % end
 % content_for scripts => begin
 	<script type="text/javascript" src="/vendor/tsorter/TSorter.js"></script>
 	<script type="text/javascript" src="/vendor/springy/springy.js" ></script>
 	<script type="text/javascript" src="/vendor/cytoscape/cytoscape.min.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape-navigator/cytoscape.navigator.js" ></script>
+	<script type="text/javascript" src="/vendor/cytoscape-panzoom/cytoscape.panzoom.js" ></script>
 	<script type="text/javascript" src="/vendor/highcharts/highcharts.js"></script>
 	<script type="text/javascript" src="/vendor/highcharts/exporting.js"></script>
 	<script type="text/javascript" src="/app/js/modules/barschart.js" ></script>
@@ -73,7 +78,7 @@
 
 			<h4>Step 1: Entering your gene, gene-set or network.</h4>
 			<p>You can either enter you data into the text box provided or upload a file with gene information encoded as follows</p>
-			<p><b> For an gene or gene-set:</b> Enter a list of genes, one per line,</p>
+			<p><b> For an gene or gene-set:</b> Enter a list of genes Symbols or proteins IDs, one per line,</p>
 			
 			<p>
 				<code>&lt;gene1&gt;</code><br/>
@@ -91,7 +96,7 @@
 				<code>&lt;gene1&gt; &lt;gene4&gt;</code>
 			</p>
 
-			<p>At the moment we only support <b>Entrez gene symbols</b> as gene identifiers.</p>
+			<p>We currently support protein identifiers in Ensembl, RefSeq or Uniprot format and gene symbols in Entrez format.</p>
 			<h4>Step 2: Selecting which intolerance measure you should use:</h4>
 			<p>You can choose from four options, <a href="http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003709" target="_blank">RVIS</a>,
 			<a href="http://nar.oxfordjournals.org/content/43/5/e33" target="_blank">EvoTol</a>, <a href="http://www.nature.com/ng/journal/v46/n9/abs/ng.3050.html" target="_blank">Gene Constraint Score</a>
@@ -132,8 +137,9 @@
 			<table id="results-table" class="table">
 				<thead>
 					<tr>
+						<th>Input</th>
 						<th>Gene</th>
-						<th data-tsorter="numeric"><span id="score-header">EvoTol</span> Percentile</th>
+						<th data-tsorter="percentage"><span id="score-header">EvoTol</span> Percentile</th>
 					</tr>
 				</thead>
 				<tbody></tbody>
@@ -141,10 +147,11 @@
 			<table id="all-results-table" class="table">
 				<thead>
 					<tr>
+						<th>Input</th>
 						<th>Gene</th>
-						<th data-tsorter="numeric">EvoTol Percentile</th>
-						<th data-tsorter="numeric">RVIS Percentile</th>
-						<th data-tsorter="numeric">Gene Constraint Percentile</th>
+						<th data-tsorter="percentage">EvoTol Percentile</th>
+						<th data-tsorter="percentage">RVIS Percentile</th>
+						<th data-tsorter="percentage">Gene Constraint Percentile</th>
 					</tr>
 				</thead>
 				<tbody></tbody>

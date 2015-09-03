@@ -1,10 +1,8 @@
 var PolyphenResults = (function (document) { 
-	var genes,
-		network;
+	var networkData;
 
 	function init(score, data) {
 		data.score = score;
-		genes = data.bar.labels;
 		renderResults(data);
 	}
 
@@ -44,6 +42,8 @@ var PolyphenResults = (function (document) {
 				}
 			}
 		).render();
+
+		networkData = data.networkData;
 	}
 
 	function renderSubsTable(score, data){
@@ -110,58 +110,21 @@ var PolyphenResults = (function (document) {
 	var showNetwokButton = document.getElementById('show-network'),
 		networkContainer = document.getElementById('cy-container'),
 		spinner = document.getElementsByClassName('spinnerContainer')[0],
-		genes,
 		network;
-	showNetwokButton.addEventListener('click', submitNetwork);
+	showNetwokButton.addEventListener('click', toggleNetwork);
 
-	function submitNetwork() {
-		if (networkContainer.style.display === 'block') {
-			hideNetwork();
-		} else {
-			if (network) {
-				showNetwork();
-			}  else {
-				showNetwokButton.setAttribute('disabled', '');
-				spinner.style.display = 'block';
-				var networkRequest = new XMLHttpRequest();
-				var url = window.location.href,
-					lastIndex = url.length - 1;
-				if (url.substring(lastIndex) === '/') {
-					url = url.substring(0, lastIndex);
-				}
-
-				networkRequest.open('post', url + '/network', true);
-				networkRequest.onreadystatechange = function () {
-					if(this.readyState === 4) {
-						if (this.status === 500) {
-							Alert({text: 'There was an unexpected error. Please contact the web admin.', type: 'danger', layout: 'top-center'});
-						} else {
-							var data = JSON.parse(this.responseText);
-							if(this.status === 200) {
-								spinner.style.display = 'none';
-								network = new Network('#cy-container', data);
-								network.render();
-								showNetwork();
-							} else {
-								Alert({text: data.message, type: 'danger', layout: 'top-center'});
-							}
-						}
-						showNetwokButton.removeAttribute('disabled');
-					}
-				};
-				networkRequest.send(JSON.stringify({ genes: genes }));
+	function toggleNetwork() {
+		if (networkContainer.style.display === 'none') {
+			if (!network) {
+				network = new Network('#cy-container', networkData);
+				network.render();
 			}
+			networkContainer.style.display = 'block';
+			showNetwokButton.innerText = 'Hide interaction network';
+		} else {
+			networkContainer.style.display = 'none';
+			showNetwokButton.innerText = 'Show interaction network';
 		}
-	}
-
-	function showNetwork () {
-		networkContainer.style.display = 'block';
-		showNetwokButton.innerText = 'Hide interaction network';
-	}
-
-	function hideNetwork (){
-		networkContainer.style.display = 'none';
-		showNetwokButton.innerText = 'Show interaction network';
 	}
 
 	return {
