@@ -111,6 +111,8 @@
 			<ul>
 				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
 			</ul>
+			<h5> Gene Constraints </h5>
+			There are no settings to be adjusted for this approach. 
 			<h5> Custom Ranking </h5>
 			<ul>
 				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>
@@ -133,7 +135,8 @@
 	</div>
 	<div class="row">
 		<div class="col-lg-12">
-			<p>Below are the percentiles for the genes that you submitted, the lower the percentile the more pathogenic the gene is predicted to be. A gene that has a percentile of <i>Unknown</i> means that there was no score associated to that gene for the given approach. This can occur for a number of reasons, please refer to the original publications for further details. You can sort by either the Gene Symbol or Percentile by clicking on the column header. Below the table is the option to show these genes on an interaction network.</p>
+			<p>Below are the percentiles for the genes that you submitted, the lower the percentile the more pathogenic the gene is predicted to be. A gene that has a percentile of <i>Unknown</i> means that there was no score associated to that gene for the given approach. This can occur for a number of reasons, please refer to the original publications for further details  (<a href="http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003709" target="_blank">RVIS</a>, <a href="http://nar.oxfordjournals.org/content/early/2014/12/29/nar.gku1322" target="_blank">EvoTol</a> and <a href="http://www.nature.com/ng/journal/v46/n9/abs/ng.3050.html" target="_blank">Gene Constraint score</a>). You can sort by either the Gene Symbol or Percentile by clicking on the column header. Below the table is the option to show these genes on an interaction network. Since gene ontology annotation can be important for genic analysis you can also optionally submit your gene set for gene ontology enrichment analysis by clicking below or view GO annotations for indivual genes by clicking their names in the table.</p>
+			<div id="enrichment_link"></div>
 			<table id="results-table" class="table">
 				<thead>
 					<tr>

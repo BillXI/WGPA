@@ -48,7 +48,7 @@ sub submit {
 	}
 
 	my $title = $c->param('Tittle');
-
+	$c->ua->cookie_jar->empty;
 	$c->ua->post($polyphenSubmissionUrl => form => {
 		_ggi_project => 'PPHWeb2',
 		_ggi_origin => 'query',

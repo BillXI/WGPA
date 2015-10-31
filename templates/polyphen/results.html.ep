@@ -42,6 +42,7 @@
 			% if ($hasErrors) { 
 			<h5 style="color: red;">Any reported errors can be found in log file below.</h5>
 			% }
+			
 			The tables shows the location of each of the mutations you entered. There may be more than one entry per mutation if there are multiple transcripts associated with that locus. To view the location of the SNP follow the associated details button and to sort by a particular column click on the header.
 		</div>
 	</div>
@@ -66,7 +67,9 @@
 		</div>
 	</div>    
 	<div class="row">
+
 		<div class="col-lg-6">
+		<div class="alert alert-info" role="alert">Each protein at a given location is displayed in the above table, for canonical information please refer to the PolyPhen text files.</div>
 		 To download this image click the menu in the top right. To zoom to a particular region click and drag over that region.
 		<div id="hotzone-scatter"></div>
 		</div>

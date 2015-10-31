@@ -13,13 +13,14 @@
 	<div class="row">
 		<div class="col-lg-6">
 			<legend>Look for mutations that are in the hot-zone</legend>
+			<div class="alert alert-warning" role="alert">This tool relies on the PolyPhen2 server so runtime is dependent on the load at the time of your submission, and can sometimes be very long.</div>
 			<p>Step 1: Enter (or upload) your gene, gene-set or network using any of accepted PolyPhen-2 formats:</p>
 				
 			<form class="form-horizontal" role="form">
 				<div class="form-group">
 					<div class="col-sm-12">
 						<textarea id="manual-input" name="manual-input" class="form-control table" rows="10"></textarea>
-						<p class="help-block">or try an example: <a href="javascript:;" id="sample-batch">Sample Batch</a></p>
+						<p class="help-block">or try an example: <a href="javascript:;" id="sample-batch">PolyPhen Sample</a> or <a href="javascript:;" id="epi4k-subs">Epi4K</a>.</p>
 					</div>
 				</div>
 
@@ -159,8 +160,8 @@
 			<ul>
 				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
 			</ul>
-			<h5> Gene Constrains </h5>
-
+			<h5> Gene Constraints </h5>
+			There are no settings to be adjusted for this approach. 
 			<h5> Custom Ranking </h5>
 			<ul>
 				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>

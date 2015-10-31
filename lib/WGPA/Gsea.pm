@@ -356,12 +356,11 @@ sub processSet {
 	for my $tr ($tableDOM->find('tr')->each) {
 		$summaryTable .= $tr->to_string;
 	}
-	$summaryTable =~ s/^0\.0$/<1<sup>-e256<\/sup>/g;
+	$summaryTable =~ s/<td>0\.0<\/td>/<td><10<sup>-256<\/sup><\/td>/g;
 	my $enrichmentPlot = $dom->find('.image')->[0]->at('img')->attr('src');
 	my $esDistribution = $dom->find('.image')->[1]->at('img')->attr('src');
 
 	$tableDOM = $dom->at('.richTable')->at('table');
-	#$tableDOM->at('tr')->remove;
 	my $genesTable;
 	my $genesTableRows = $tableDOM->find('tr');
 	if ($negEnrichment){

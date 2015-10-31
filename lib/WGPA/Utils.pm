@@ -58,7 +58,7 @@ sub getGenePercentiles {
 			$sth = $mydbh->prepare('SELECT Gene_Name, '.$mydbh->quote_identifier('ALL_'.$threshold.'_perc').' FROM RVIS ORDER BY '.$mydbh->quote_identifier('ALL_'.$threshold.'_perc').';');
 			$sth->execute();
 		} elsif ($score eq 'Constraint') {
-			$sth = $mydbh->prepare('SELECT Gene, FORMAT(Percentile,2) FROM GeneConstraints ORDER BY Percentile;');
+			$sth = $mydbh->prepare('SELECT Gene, FORMAT(Percentile,2) FROM GeneConstraint ORDER BY Percentile;');
 			$sth->execute();
 		}
 

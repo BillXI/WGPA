@@ -119,7 +119,7 @@ var Basic = (function (window, document) {
 			tbdy=document.createElement('tbody'),
 			tr,
 			td;
-		
+		var gene_list = [];
 		for(var i = 0; i < genes.length; i++) {
 			gene = genes[i].data;
 			
@@ -128,9 +128,14 @@ var Basic = (function (window, document) {
 			td = document.createElement('td');
 			td.appendChild(document.createTextNode(gene.input));
 			tr.appendChild(td);
-
+			gene_list.push(gene.name);
 			td = document.createElement('td');
-			td.appendChild(document.createTextNode(gene.name));
+			var link = document.createElement('a');
+			link.textContent = gene.name;
+			link.setAttribute('target',"_blank")
+			link.href = 'http://amigo.geneontology.org/amigo/search/annotation?q='.concat(gene.name);
+			td.appendChild(link)
+			//td.appendChild(document.createTextNode(gene.name));
 			tr.appendChild(td);
 
 			td = document.createElement('td');
@@ -139,7 +144,15 @@ var Basic = (function (window, document) {
 
 			tbdy.appendChild(tr);
 		}
-
+		var gene_for_submission = gene_list.join('%0A');
+		var url_for_submission = "http://pantherdb.org/webservices/go/overrep.jsp?ontology=biological_process&species=HUMAN&correction=bonferroni&format=html&input=".concat(gene_for_submission)
+		var link = document.createElement('a');
+		link.textContent = 'Run GO enrichment';
+		link.href = url_for_submission;
+		link.setAttribute('class', 'btn btn-primary' )
+		link.setAttribute('target',"_blank")
+		var linker = document.getElementById('enrichment_link');
+		linker.appendChild(link)
 		var tbl = document.getElementById('results-table');
 		tbl.removeChild(tbl.getElementsByTagName('tbody')[0]);
 		tbl.appendChild(tbdy);

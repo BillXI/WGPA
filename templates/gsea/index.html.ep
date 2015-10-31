@@ -173,12 +173,15 @@
 			<ul>
 				<li>Population cutoff: The percentage of the population do you consider as a rare variant where 001 represents less than 1 in 1000 people as being a rare variant.</li>
 			</ul>
-			<h5> Gene Constrains </h5>
+			<h5> Gene Constraint </h5>
+			There are no settings to be adjusted for this approach.
 
 			<h5> Custom Ranking </h5>
 			<ul>
 				<li>If you have your own scoring of intolerance or pathogenicty you upload it to rank a set of genes or compare it to other tools. You will require a text file containing the percentile for each gene genome-wide (Entrez Gene) in the following format: <code>&lt;Entrez Gene&gt; &lt;Percentile&gt;</code></li>
 			</ul>
+			<h5> Troubleshooting </h5>
+			It is possible that GSEA will return NaN for the nominal p-value and FDR q-value, this is explained in the <a href="http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/FAQ#What_does_it_mean_for_a_gene_set_to_have_NES_and_nominal_p-values_of_NaN_.28also_shown_as_blanks.29.3F">GSEA guide</a>.
 		</div>
 	</div>
 </div>

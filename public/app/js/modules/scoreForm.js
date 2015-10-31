@@ -33,9 +33,9 @@ var ScoreForm = (function (window, document) {
 			'<label class="control-label col-sm-5" for="threshold">Population Cutoff:</label>' +
 			'<div class="col-sm-7">' +
 				'<select name="threshold" id="Threshold" class="form-control">' +
-					'<option value="001">001</option>' +
-					'<option value="01">01</option>' +
-					'<option value="1">1</option>' +
+					'<option value="01">0.01 (default)</option>' +
+					'<option value="001">0.001</option>' +
+					'<option value="1">0.1</option>' +
 				'</select>' +
 			'</div>' +
 		'</div>';
